@@ -314,6 +314,29 @@ export default {
   },
 
   // Reports
+  backlog: {
+    title: 'バックログ管理',
+    description: '在庫不足を追跡して解消します',
+    loading: 'バックログを読み込み中...',
+    loadError: 'バックログの読み込みに失敗しました',
+    highPriority: '優先度：高',
+    mediumPriority: '優先度：中',
+    lowPriority: '優先度：低',
+    totalItems: 'バックログ総数',
+    items: 'バックログ項目',
+    empty: 'バックログはありません。すべての注文を履行できます！',
+    orderId: '注文ID',
+    sku: 'SKU',
+    itemName: '品目名',
+    quantityNeeded: '必要数量',
+    quantityAvailable: '在庫数量',
+    shortage: '不足',
+    daysDelayed: '遅延日数',
+    priority: '優先度',
+    unitsShort: '{count}個不足',
+    days: '{count}日'
+  },
+
   reports: {
     title: '業績レポート',
     description: '四半期の業績指標と月次トレンドを表示します',
@@ -366,6 +389,10 @@ export default {
 
   // Product Names
   productNames: {
+    'Industrial Widget Type A': '産業用ウィジェット タイプA',
+    'Electric Motor 5HP': '電動モーター 5馬力',
+    'Oil Filter Cartridge': 'オイルフィルターカートリッジ',
+    'Pressure Relief Valve': '圧力逃し弁',
     'Single Layer PCB Assembly': '単層PCB組立',
     'Dual Layer PCB Assembly': '二層PCB組立',
     'Multi Layer PCB Assembly': '多層PCB組立',
