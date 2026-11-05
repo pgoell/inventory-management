@@ -6,6 +6,9 @@ export default {
     orders: '注文',
     finance: '財務',
     demandForecast: '需要予測',
+    restocking: '補充発注',
+    groupOperations: 'オペレーション',
+    groupPlanning: '計画',
     backlog: 'バックログ',
     reports: 'レポート',
     companyName: '触媒コンポーネンツ',
@@ -57,7 +60,10 @@ export default {
       daysDelayed: '遅延日数',
       priority: '優先度',
       unitsShort: '単位不足',
-      days: '日'
+      days: '日',
+      actions: '操作',
+      createPO: '発注書作成',
+      viewPO: '発注書を表示'
     },
     topProducts: {
       title: '収益別トップ製品',
@@ -114,6 +120,17 @@ export default {
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
     quantity: '数量',
+    submitted: {
+      title: '発注済み',
+      aside: '補充発注。フィルターの影響を受けません',
+      empty: '補充発注はまだありません。',
+      orderId: '発注番号',
+      submittedOn: '発注日',
+      lines: '明細',
+      totalCost: '合計費用',
+      leadTime: 'リードタイム（日）',
+      expectedDelivery: '納品予定日'
+    },
     table: {
       orderNumber: '注文番号',
       orderId: '注文ID',
@@ -190,7 +207,60 @@ export default {
     }
   },
 
-  // Filters
+  // 補充発注
+  restocking: {
+    title: '補充発注',
+    description: '予算を決めると、需要が増える品目の発注案を表示します。',
+    budget: '予算',
+    budgetInput: '予算額',
+    plannedSpend: '発注予定額',
+    lines: '明細数',
+    longestLead: '最長リードタイム',
+    days: '{count}日',
+    planTitle: '発注案',
+    planAside: '予算を動かすと再計算します。行のチェックや数量で調整できます。',
+    empty: 'この予算では補充できる品目がありません。',
+    noGaps: '予測が現在の需要を上回る品目はありません。',
+    table: {
+      include: '対象',
+      sku: 'SKU',
+      item: '品目',
+      trend: '傾向',
+      gap: '不足',
+      quantity: '発注数',
+      unitCost: '単価',
+      leadTime: 'リードタイム（日）',
+      lineTotal: '明細金額'
+    },
+    total: '合計',
+    budgetLeft: '予算残',
+    over: '予算超過',
+    placeOrder: '発注する',
+    placing: '発注中...',
+    placed: '発注 {id} を受け付けました。納品予定日は {date} です。',
+    viewOrders: '注文画面で見る',
+    failed: '発注できませんでした。',
+    lineCount: '{total}件中{count}件',
+    hint: '予算を動かすと、数量は提案値に戻ります。',
+    inspector: '発注の詳細',
+    summary: '概要',
+    budgetUsed: '予算消化率',
+    submitted: '発注済み',
+    orderNo: '発注 {id}',
+    inTransit: '輸送中',
+    leadTime: 'リードタイム',
+    expected: '納品予定',
+    chart: {
+      title: 'SKU別の需要',
+      unit: '単位',
+      current: '現在',
+      forecast: '予測',
+      label: 'SKU別の現在需要と予測需要',
+      tooltip: '{sku}: 現在 {current}、予測 {forecast}'
+    }
+  },
+
+  // フィルター
   filters: {
     timePeriod: '期間',
     location: '場所',
@@ -373,6 +443,28 @@ export default {
   },
 
   // Common
+  purchaseOrder: {
+    createTitle: '発注書を作成',
+    viewTitle: '発注書',
+    orderId: '注文ID',
+    sku: 'SKU',
+    item: '品目',
+    shortage: '不足',
+    unitsShort: '{count}個不足',
+    supplier: '仕入先',
+    quantity: '数量',
+    unitCost: '単価',
+    total: '合計',
+    expectedDelivery: '納品予定日',
+    createdDate: '作成日',
+    status: 'ステータス',
+    notes: '備考',
+    submit: '発注書を作成',
+    saving: '保存中...',
+    loadError: '発注書の読み込みに失敗しました',
+    createError: '発注書の作成に失敗しました'
+  },
+
   common: {
     loading: '読み込み中...',
     error: 'エラー',

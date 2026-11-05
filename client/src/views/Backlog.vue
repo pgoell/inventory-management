@@ -1,6 +1,6 @@
 <template>
   <div class="backlog">
-    <div class="page-header">
+    <div class="page-head">
       <h2>{{ t('backlog.title') }}</h2>
       <p>{{ t('backlog.description') }}</p>
     </div>
@@ -8,67 +8,62 @@
     <div v-if="loading" class="loading">{{ t('backlog.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
-      <div class="stats-grid">
-        <div class="stat-card danger">
-          <div class="stat-label">{{ t('backlog.highPriority') }}</div>
-          <div class="stat-value">{{ getBacklogByPriority('high').length }}</div>
+      <div class="stats">
+        <div class="stat is-bad">
+          <span class="stat-label">{{ t('backlog.highPriority') }}</span>
+          <span class="stat-value">{{ getBacklogByPriority('high').length }}</span>
         </div>
-        <div class="stat-card warning">
-          <div class="stat-label">{{ t('backlog.mediumPriority') }}</div>
-          <div class="stat-value">{{ getBacklogByPriority('medium').length }}</div>
+        <div class="stat is-warn">
+          <span class="stat-label">{{ t('backlog.mediumPriority') }}</span>
+          <span class="stat-value">{{ getBacklogByPriority('medium').length }}</span>
         </div>
-        <div class="stat-card info">
-          <div class="stat-label">{{ t('backlog.lowPriority') }}</div>
-          <div class="stat-value">{{ getBacklogByPriority('low').length }}</div>
+        <div class="stat is-info">
+          <span class="stat-label">{{ t('backlog.lowPriority') }}</span>
+          <span class="stat-value">{{ getBacklogByPriority('low').length }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('backlog.totalItems') }}</div>
-          <div class="stat-value">{{ backlogItems.length }}</div>
+        <div class="stat">
+          <span class="stat-label">{{ t('backlog.totalItems') }}</span>
+          <span class="stat-value">{{ backlogItems.length }}</span>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('backlog.items') }}</h3>
+      <div class="section">
+        <div class="section-label">
+          <span>{{ t('backlog.items') }}</span>
+          <span class="aside mono">{{ backlogItems.length }}</span>
         </div>
-        <div v-if="backlogItems.length === 0" style="padding: 3rem; text-align: center;">
-          <p style="font-size: 1.125rem; color: #10b981; font-weight: 600;">
-            {{ t('backlog.empty') }}
-          </p>
-        </div>
-        <div v-else class="table-container">
-          <table>
+        <div v-if="backlogItems.length === 0" class="empty">{{ t('backlog.empty') }}</div>
+        <div v-else class="ledger-wrap">
+          <table class="ledger">
             <thead>
               <tr>
                 <th>{{ t('backlog.orderId') }}</th>
                 <th>{{ t('backlog.sku') }}</th>
                 <th>{{ t('backlog.itemName') }}</th>
-                <th>{{ t('backlog.quantityNeeded') }}</th>
-                <th>{{ t('backlog.quantityAvailable') }}</th>
+                <th class="num">{{ t('backlog.quantityNeeded') }}</th>
+                <th class="num">{{ t('backlog.quantityAvailable') }}</th>
                 <th>{{ t('backlog.shortage') }}</th>
-                <th>{{ t('backlog.daysDelayed') }}</th>
+                <th class="num">{{ t('backlog.daysDelayed') }}</th>
                 <th>{{ t('backlog.priority') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="item in backlogItems" :key="item.id">
-                <td><strong>{{ item.order_id }}</strong></td>
-                <td><strong>{{ item.item_sku }}</strong></td>
+                <td class="strong">{{ item.order_id }}</td>
+                <td class="strong">{{ item.item_sku }}</td>
                 <td>{{ translateProductName(item.item_name) }}</td>
-                <td>{{ item.quantity_needed }}</td>
-                <td>{{ item.quantity_available }}</td>
+                <td class="num">{{ item.quantity_needed }}</td>
+                <td class="num">{{ item.quantity_available }}</td>
                 <td>
-                  <span class="badge danger">
+                  <span class="tag tag--bad">
                     {{ t('backlog.unitsShort', { count: item.quantity_needed - item.quantity_available }) }}
                   </span>
                 </td>
-                <td>
-                  <span :style="{ color: item.days_delayed > 7 ? '#ef4444' : '#f59e0b' }">
-                    {{ t('backlog.days', { count: item.days_delayed }) }}
-                  </span>
+                <td class="num" :class="item.days_delayed > 7 ? 'late-bad' : 'late-warn'">
+                  {{ t('backlog.days', { count: item.days_delayed }) }}
                 </td>
                 <td>
-                  <span :class="['badge', item.priority]">
+                  <span :class="['tag', priorityTag[item.priority]]">
                     {{ t(`priority.${item.priority}`) }}
                   </span>
                 </td>
@@ -143,8 +138,11 @@ export default {
 
     onMounted(loadBacklog)
 
+    const priorityTag = { high: 'tag--bad', medium: 'tag--warn', low: 'tag--info' }
+
     return {
       t,
+      priorityTag,
       translateProductName,
       loading,
       error,
@@ -154,3 +152,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.strong {
+  font-weight: 600;
+}
+
+.late-bad {
+  color: var(--bad);
+}
+
+.late-warn {
+  color: var(--warn);
+}
+</style>

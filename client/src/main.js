@@ -1,10 +1,14 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import '@fontsource-variable/geist'
+import '@fontsource-variable/geist-mono'
 import App from './App.vue'
+import './styles/workbench.css'
 import Dashboard from './views/Dashboard.vue'
 import Inventory from './views/Inventory.vue'
 import Orders from './views/Orders.vue'
 import Demand from './views/Demand.vue'
+import Restocking from './views/Restocking.vue'
 import Spending from './views/Spending.vue'
 import Backlog from './views/Backlog.vue'
 import Reports from './views/Reports.vue'
@@ -16,6 +20,7 @@ const router = createRouter({
     { path: '/inventory', component: Inventory },
     { path: '/orders', component: Orders },
     { path: '/demand', component: Demand },
+    { path: '/restocking', component: Restocking },
     { path: '/spending', component: Spending },
     { path: '/backlog', component: Backlog },
     { path: '/reports', component: Reports }

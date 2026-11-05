@@ -6,6 +6,9 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
+    groupOperations: 'Operations',
+    groupPlanning: 'Planning',
     backlog: 'Backlog',
     reports: 'Reports',
     companyName: 'Catalyst Components',
@@ -57,7 +60,10 @@ export default {
       daysDelayed: 'Days Delayed',
       priority: 'Priority',
       unitsShort: 'units short',
-      days: 'days'
+      days: 'days',
+      actions: 'Actions',
+      createPO: 'Create PO',
+      viewPO: 'View PO'
     },
     topProducts: {
       title: 'Top Products by Revenue',
@@ -114,6 +120,17 @@ export default {
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
     quantity: 'Qty',
+    submitted: {
+      title: 'Submitted Orders',
+      aside: 'Restocking orders, not affected by filters',
+      empty: 'No restocking orders submitted yet.',
+      orderId: 'Order',
+      submittedOn: 'Submitted',
+      lines: 'Lines',
+      totalCost: 'Total Cost',
+      leadTime: 'Lead Time (days)',
+      expectedDelivery: 'Expected Delivery'
+    },
     table: {
       orderNumber: 'Order Number',
       orderId: 'Order ID',
@@ -187,6 +204,59 @@ export default {
       change: 'Change',
       trend: 'Trend',
       period: 'Period'
+    }
+  },
+
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Set a budget and get a suggested order for items with rising demand.',
+    budget: 'Budget',
+    budgetInput: 'Budget amount',
+    plannedSpend: 'Planned Spend',
+    lines: 'Lines',
+    longestLead: 'Longest Lead Time',
+    days: '{count} days',
+    planTitle: 'Suggested Order',
+    planAside: 'Move the budget to recalculate. Untick a line or change a quantity to adjust.',
+    empty: 'Nothing to restock at this budget.',
+    noGaps: 'No item has a forecast above current demand.',
+    table: {
+      include: 'Include',
+      sku: 'SKU',
+      item: 'Item',
+      trend: 'Trend',
+      gap: 'Gap',
+      quantity: 'Order Qty',
+      unitCost: 'Unit Cost',
+      leadTime: 'Lead Time (days)',
+      lineTotal: 'Line Total'
+    },
+    total: 'Total',
+    budgetLeft: 'Budget left',
+    over: 'Over budget by',
+    placeOrder: 'Place Order',
+    placing: 'Placing...',
+    placed: 'Order {id} placed. Expected delivery {date}.',
+    viewOrders: 'View in Orders',
+    failed: 'Could not place the order.',
+    lineCount: '{count} of {total} lines',
+    hint: 'Moving the budget resets quantities to the suggestion.',
+    inspector: 'Order details',
+    summary: 'Summary',
+    budgetUsed: 'Budget used',
+    submitted: 'Submitted orders',
+    orderNo: 'Order {id}',
+    inTransit: 'In transit',
+    leadTime: 'Lead time',
+    expected: 'Expected',
+    chart: {
+      title: 'Demand by SKU',
+      unit: 'units',
+      current: 'Current',
+      forecast: 'Forecast',
+      label: 'Current and forecast demand per SKU',
+      tooltip: '{sku}: {current} now, {forecast} forecast'
     }
   },
 
@@ -373,6 +443,28 @@ export default {
   },
 
   // Common
+  purchaseOrder: {
+    createTitle: 'Create Purchase Order',
+    viewTitle: 'Purchase Order',
+    orderId: 'Order ID',
+    sku: 'SKU',
+    item: 'Item',
+    shortage: 'Shortage',
+    unitsShort: '{count} units short',
+    supplier: 'Supplier',
+    quantity: 'Quantity',
+    unitCost: 'Unit Cost',
+    total: 'Total',
+    expectedDelivery: 'Expected Delivery',
+    createdDate: 'Created',
+    status: 'Status',
+    notes: 'Notes',
+    submit: 'Create Purchase Order',
+    saving: 'Saving...',
+    loadError: 'Failed to load the purchase order',
+    createError: 'Failed to create the purchase order'
+  },
+
   common: {
     loading: 'Loading...',
     error: 'Error',

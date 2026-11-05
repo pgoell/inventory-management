@@ -1,12 +1,14 @@
+from datetime import date, datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
-from datetime import date
 from uuid import uuid4
 from pydantic import BaseModel
+import restock_db
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
 app = FastAPI(title="Factory Inventory Management System")
+restock_db.init_db()
 
 # Quarter mapping for date filtering
 QUARTER_MAP = {
@@ -91,6 +93,8 @@ class DemandForecast(BaseModel):
     forecasted_demand: int
     trend: str
     period: str
+    unit_cost: float
+    lead_time_days: int
 
 class BacklogItem(BaseModel):
     id: str
@@ -133,6 +137,31 @@ class CreatePurchaseOrderRequest(BaseModel):
     unit_cost: float
     expected_delivery_date: str
     notes: Optional[str] = None
+
+class RestockLine(BaseModel):
+    sku: str
+    quantity: int
+
+class CreateRestockOrderRequest(BaseModel):
+    budget: float
+    items: List[RestockLine]
+
+class RestockOrderItem(BaseModel):
+    sku: str
+    name: str
+    quantity: int
+    unit_cost: float
+    line_total: float
+    lead_time_days: int
+
+class RestockOrder(BaseModel):
+    id: int
+    created_at: str
+    budget: float
+    total_cost: float
+    lead_time_days: int
+    expected_delivery: str
+    items: List[RestockOrderItem]
 
 # API endpoints
 @app.get("/")
@@ -192,6 +221,48 @@ def get_backlog():
         item_dict["has_purchase_order"] = has_po
         result.append(item_dict)
     return result
+
+@app.get("/api/restock-orders", response_model=List[RestockOrder])
+def get_restock_orders():
+    """Submitted restocking orders, newest first"""
+    return restock_db.list_orders()
+
+@app.post("/api/restock-orders", response_model=RestockOrder, status_code=201)
+def create_restock_order(request: CreateRestockOrderRequest):
+    """Submit a restocking order; cost and lead time come from the demand forecasts"""
+    if not request.items:
+        raise HTTPException(status_code=400, detail="Order has no items")
+    forecasts = {f["item_sku"]: f for f in demand_forecasts}
+    items = []
+    for line in request.items:
+        forecast = forecasts.get(line.sku)
+        if not forecast:
+            raise HTTPException(status_code=400, detail=f"Unknown SKU {line.sku}")
+        if line.quantity <= 0:
+            raise HTTPException(status_code=400, detail=f"Quantity for {line.sku} must be positive")
+        items.append({
+            "sku": line.sku,
+            "name": forecast["item_name"],
+            "quantity": line.quantity,
+            "unit_cost": forecast["unit_cost"],
+            "line_total": round(line.quantity * forecast["unit_cost"], 2),
+            "lead_time_days": forecast["lead_time_days"],
+        })
+    total_cost = round(sum(i["line_total"] for i in items), 2)
+    if total_cost > request.budget:
+        raise HTTPException(status_code=400, detail="Order exceeds budget")
+    now = datetime.now()
+    lead_time = max(i["lead_time_days"] for i in items)
+    order = {
+        "created_at": now.isoformat(timespec="seconds"),
+        "budget": request.budget,
+        "total_cost": total_cost,
+        "lead_time_days": lead_time,
+        "expected_delivery": (now + timedelta(days=lead_time)).date().isoformat(),
+        "items": items,
+    }
+    order["id"] = restock_db.insert_order(order)
+    return order
 
 # Tasks and purchase orders live in memory and reset on restart.
 tasks: List[dict] = []

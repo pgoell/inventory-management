@@ -1,6 +1,6 @@
 <template>
   <div class="spending">
-    <div class="page-header">
+    <div class="page-head">
       <h2>{{ t('finance.title') }}</h2>
       <p>{{ t('finance.description') }}</p>
     </div>
@@ -8,158 +8,151 @@
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
-      <!-- Revenue & Financial KPIs -->
-      <div class="stats-grid-finance">
-        <div class="stat-card revenue-card">
-          <div class="stat-label">{{ t('finance.totalRevenue') }}</div>
-          <div class="stat-value">{{ formatCurrency(revenueMetrics.totalRevenue) }}</div>
-          <div class="stat-change positive">
-            <span class="change-icon">↑</span>
-            {{ t('finance.fromOrders', { count: revenueMetrics.orderCount }) }}
-          </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">{{ t('finance.totalRevenue') }}</span>
+          <span class="stat-value">{{ formatCurrency(revenueMetrics.totalRevenue) }}</span>
+          <span class="stat-note">{{ t('finance.fromOrders', { count: revenueMetrics.orderCount }) }}</span>
         </div>
-        <div class="stat-card cost-card">
-          <div class="stat-label">{{ t('finance.totalCosts') }}</div>
-          <div class="stat-value">{{ formatCurrency(totalCosts) }}</div>
-          <div class="stat-meta">{{ t('finance.costBreakdown') }}</div>
+        <div class="stat">
+          <span class="stat-label">{{ t('finance.totalCosts') }}</span>
+          <span class="stat-value">{{ formatCurrency(totalCosts) }}</span>
+          <span class="stat-note">{{ t('finance.costBreakdown') }}</span>
         </div>
-        <div class="stat-card profit-card">
-          <div class="stat-label">{{ t('finance.netProfit') }}</div>
-          <div class="stat-value">{{ formatCurrency(netProfit) }}</div>
-          <div class="stat-meta">{{ profitMargin }}% {{ t('finance.margin') }}</div>
+        <div class="stat" :class="netProfit >= 0 ? 'is-ok' : 'is-bad'">
+          <span class="stat-label">{{ t('finance.netProfit') }}</span>
+          <span class="stat-value">{{ formatCurrency(netProfit) }}</span>
+          <span class="stat-note">{{ profitMargin }}% {{ t('finance.margin') }}</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('finance.avgOrderValue') }}</div>
-          <div class="stat-value">{{ formatCurrency(revenueMetrics.avgOrderValue) }}</div>
-          <div class="stat-meta">{{ t('finance.perOrderRevenue') }}</div>
+        <div class="stat">
+          <span class="stat-label">{{ t('finance.avgOrderValue') }}</span>
+          <span class="stat-value">{{ formatCurrency(revenueMetrics.avgOrderValue) }}</span>
+          <span class="stat-note">{{ t('finance.perOrderRevenue') }}</span>
         </div>
       </div>
 
-      <!-- Monthly Revenue vs Cost Chart -->
-      <div class="card chart-card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('finance.revenueVsCosts.title') }}</h3>
-          <div class="chart-legend">
-            <span class="legend-item"><span class="legend-dot revenue-color"></span>{{ t('finance.revenueVsCosts.revenue') }}</span>
-            <span class="legend-item"><span class="legend-dot cost-color"></span>{{ t('finance.revenueVsCosts.costs') }}</span>
-          </div>
-        </div>
-        <div class="chart-container">
-          <div class="bar-chart">
-            <div class="y-axis">
-              <span>{{ currencySymbol }}{{ maxRevenueValue }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.75) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.5) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.25) }}K</span>
-              <span>{{ currencySymbol }}0</span>
-            </div>
-            <div class="chart-area">
-              <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
-                <div class="revenue-bars">
-                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${currencySymbol}${month.revenue.toLocaleString()}`"></div>
-                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${currencySymbol}${month.costs.toLocaleString()}`"></div>
-                </div>
-                <span class="bar-label">{{ translateMonth(month.month) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="section">
+        <h3 class="section-label">
+          <span>{{ t('finance.revenueVsCosts.title') }}</span>
+          <span class="legend aside">
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-1)"></span>{{ t('finance.revenueVsCosts.revenue') }}</span>
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-2)"></span>{{ t('finance.revenueVsCosts.costs') }}</span>
+          </span>
+        </h3>
+        <svg :viewBox="`0 0 ${CH.W} ${CH.H}`" class="chart" role="img" :aria-label="t('finance.revenueVsCosts.title')">
+          <g v-for="tick in revenueChart.ticks" :key="tick.key">
+            <line :x1="CH.L" :x2="CH.W - CH.R" :y1="tick.y" :y2="tick.y" class="grid" />
+            <text :x="CH.L - 8" :y="tick.y + 4" text-anchor="end" class="axis-text">{{ tick.label }}</text>
+          </g>
+          <g v-for="bar in revenueChart.bars" :key="bar.month" class="bar-group">
+            <rect :x="bar.revX" :y="bar.revY" :width="CH.BAR" :height="bar.revH" rx="2" class="mark" style="fill: var(--chart-1)">
+              <title>{{ bar.revTitle }}</title>
+            </rect>
+            <rect :x="bar.costX" :y="bar.costY" :width="CH.BAR" :height="bar.costH" rx="2" class="mark" style="fill: var(--chart-2)">
+              <title>{{ bar.costTitle }}</title>
+            </rect>
+            <text :x="bar.cx" :y="CH.H - 8" text-anchor="middle" class="axis-text">{{ bar.label }}</text>
+          </g>
+          <line :x1="CH.L" :x2="CH.W - CH.R" :y1="CH.T + CH.PLOT_H" :y2="CH.T + CH.PLOT_H" class="baseline" />
+        </svg>
+      </section>
 
-      <!-- Monthly Cost Flow Chart -->
-      <div class="card chart-card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('finance.monthlyCostFlow.title') }}</h3>
-          <div class="chart-legend">
-            <span class="legend-item"><span class="legend-dot procurement"></span>{{ t('finance.monthlyCostFlow.procurement') }}</span>
-            <span class="legend-item"><span class="legend-dot operational"></span>{{ t('finance.monthlyCostFlow.operational') }}</span>
-            <span class="legend-item"><span class="legend-dot labor"></span>{{ t('finance.monthlyCostFlow.labor') }}</span>
-            <span class="legend-item"><span class="legend-dot overhead"></span>{{ t('finance.monthlyCostFlow.overhead') }}</span>
-          </div>
-        </div>
-        <div class="chart-container">
-          <div class="bar-chart">
-            <div class="y-axis">
-              <span>{{ currencySymbol }}25K</span>
-              <span>{{ currencySymbol }}20K</span>
-              <span>{{ currencySymbol }}15K</span>
-              <span>{{ currencySymbol }}10K</span>
-              <span>{{ currencySymbol }}5K</span>
-              <span>{{ currencySymbol }}0</span>
-            </div>
-            <div class="chart-area">
-              <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
-                <div class="stacked-bar" @click="showCostDetail(month)">
-                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${currencySymbol}${month.procurement.toLocaleString()}`"></div>
-                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${currencySymbol}${month.operational.toLocaleString()}`"></div>
-                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${currencySymbol}${month.labor.toLocaleString()}`"></div>
-                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${currencySymbol}${month.overhead.toLocaleString()}`"></div>
-                </div>
-                <span class="bar-label">{{ translateMonth(month.month) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="section">
+        <h3 class="section-label">
+          <span>{{ t('finance.monthlyCostFlow.title') }}</span>
+          <span class="legend aside">
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-1)"></span>{{ t('finance.monthlyCostFlow.procurement') }}</span>
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-2)"></span>{{ t('finance.monthlyCostFlow.operational') }}</span>
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-3)"></span>{{ t('finance.monthlyCostFlow.labor') }}</span>
+            <span class="legend-item"><span class="swatch" style="background: var(--chart-4)"></span>{{ t('finance.monthlyCostFlow.overhead') }}</span>
+          </span>
+        </h3>
+        <svg :viewBox="`0 0 ${CH.W} ${CH.H}`" class="chart" role="img" :aria-label="t('finance.monthlyCostFlow.title')">
+          <g v-for="tick in costChart.ticks" :key="tick.key">
+            <line :x1="CH.L" :x2="CH.W - CH.R" :y1="tick.y" :y2="tick.y" class="grid" />
+            <text :x="CH.L - 8" :y="tick.y + 4" text-anchor="end" class="axis-text">{{ tick.label }}</text>
+          </g>
+          <g
+            v-for="bar in costChart.bars"
+            :key="bar.month"
+            class="bar-group is-clickable"
+            tabindex="0"
+            role="button"
+            :aria-label="bar.label"
+            @click="showCostDetail(bar.data)"
+            @keydown.enter="showCostDetail(bar.data)"
+          >
+            <rect :x="bar.x - 8" :y="CH.T" :width="CH.STACK_BAR + 16" :height="CH.PLOT_H" class="hit" />
+            <rect
+              v-for="seg in bar.segments"
+              :key="seg.key"
+              :x="bar.x"
+              :y="seg.y"
+              :width="CH.STACK_BAR"
+              :height="seg.h"
+              class="mark"
+              :style="{ fill: `var(--chart-${seg.index})` }"
+            >
+              <title>{{ seg.title }}</title>
+            </rect>
+            <text :x="bar.x + CH.STACK_BAR / 2" :y="CH.H - 8" text-anchor="middle" class="axis-text">{{ bar.label }}</text>
+          </g>
+          <line :x1="CH.L" :x2="CH.W - CH.R" :y1="CH.T + CH.PLOT_H" :y2="CH.T + CH.PLOT_H" class="baseline" />
+        </svg>
+      </section>
 
-      <div class="two-column-grid">
-        <!-- Category Spending Breakdown -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">{{ t('finance.categorySpending.title') }}</h3>
-          </div>
-          <div class="category-list">
-            <div v-for="category in categorySpending" :key="category.category" class="category-item">
+      <div class="two-col">
+        <section class="section">
+          <h3 class="section-label">{{ t('finance.categorySpending.title') }}</h3>
+          <ul class="category-list">
+            <li v-for="category in categorySpending" :key="category.category" class="category-item">
               <div class="category-info">
-                <div class="category-name">{{ translateCategory(category.category) }}</div>
-                <div class="category-amount">{{ currencySymbol }}{{ category.amount.toLocaleString() }}</div>
+                <span class="category-name">{{ translateCategory(category.category) }}</span>
+                <span class="mono">{{ currencySymbol }}{{ category.amount.toLocaleString() }}</span>
               </div>
-              <div class="category-bar-container">
-                <div class="category-bar" :style="{ width: category.percentage + '%' }"></div>
-              </div>
-              <div class="category-meta">
-                <span class="percentage">{{ category.percentage }}% {{ t('finance.categorySpending.ofTotal') }}</span>
-                <span class="change" :class="{ positive: category.change > 0, negative: category.change < 0 }">
+              <div class="track"><div class="fill" :style="{ width: category.percentage + '%' }"></div></div>
+              <div class="category-meta muted">
+                <span>{{ category.percentage }}% {{ t('finance.categorySpending.ofTotal') }}</span>
+                <span class="mono" :class="{ up: category.change > 0, down: category.change < 0 }">
                   {{ category.change > 0 ? '+' : '' }}{{ category.change }}%
                 </span>
               </div>
-            </div>
-          </div>
-        </div>
+            </li>
+          </ul>
+        </section>
 
-        <!-- Recent Transactions -->
-        <div class="card transactions-card">
-          <div class="card-header">
-            <h3 class="card-title">{{ t('finance.transactions.title') }}</h3>
-          </div>
-          <div class="transactions-table-container">
-            <table class="transactions-table">
+        <section class="section">
+          <h3 class="section-label">{{ t('finance.transactions.title') }}</h3>
+          <div class="ledger-wrap is-scroll">
+            <table class="ledger">
               <thead>
                 <tr>
                   <th>{{ t('finance.transactions.id') }}</th>
                   <th>{{ t('finance.transactions.description') }}</th>
                   <th>{{ t('finance.transactions.vendor') }}</th>
                   <th>{{ t('finance.transactions.date') }}</th>
-                  <th class="text-right">{{ t('finance.transactions.amount') }}</th>
+                  <th class="num">{{ t('finance.transactions.amount') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="transaction in recentTransactions"
                   :key="transaction.id"
-                  class="clickable-row"
+                  class="is-clickable"
+                  tabindex="0"
                   @click="handleTransactionClick(transaction)"
+                  @keydown.enter="handleTransactionClick(transaction)"
                 >
-                  <td class="transaction-id">{{ transaction.id.toString().padStart(3, '0') }}</td>
-                  <td class="transaction-description">{{ transaction.description }}</td>
-                  <td class="transaction-vendor">{{ transaction.vendor }}</td>
-                  <td class="transaction-date">{{ formatDateShort(transaction.date) }}</td>
-                  <td class="transaction-amount text-right">{{ currencySymbol }}{{ transaction.amount.toLocaleString() }}</td>
+                  <td class="mono muted">{{ transaction.id.toString().padStart(3, '0') }}</td>
+                  <td>{{ transaction.description }}</td>
+                  <td class="muted">{{ transaction.vendor }}</td>
+                  <td class="mono muted">{{ formatDateShort(transaction.date) }}</td>
+                  <td class="num">{{ currencySymbol }}{{ transaction.amount.toLocaleString() }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </div>
 
@@ -383,16 +376,6 @@ export default {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
     })
 
-    const getBarHeight = (value) => {
-      const maxValue = 25000
-      return (value / maxValue) * 100
-    }
-
-    const getRevenueBarHeight = (value) => {
-      const maxValue = maxRevenueValue.value * 1000
-      return (value / maxValue) * 100
-    }
-
     const formatDate = (dateString) => {
       return new Date(dateString).toLocaleDateString('en-US', {
         month: 'short',
@@ -447,6 +430,89 @@ export default {
       return spendingCategoryMap[category] || productCategoryMap[category] || category
     }
 
+    // Chart geometry (SVG user units)
+    const W = 960, H = 300, L = 56, R = 8, T = 8, B = 28
+    const PLOT_W = W - L - R
+    const PLOT_H = H - T - B
+    const GAP = 2
+    const BAR = 22
+    const STACK_BAR = 24
+
+    const makeTicks = (max, steps, label) => {
+      const out = []
+      for (let k = 0; k <= steps; k++) {
+        out.push({ key: k, y: T + PLOT_H - (PLOT_H * k) / steps, label: label((max * k) / steps) })
+      }
+      return out
+    }
+
+    // Top of a 4-tick axis on a round step (1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of ten)
+    const niceMax = (peak) => {
+      const raw = Math.max(peak, 1) / 4
+      const mag = 10 ** Math.floor(Math.log10(raw))
+      return [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(m => m * mag).find(s => s >= raw) * 4
+    }
+
+    const revenueChart = computed(() => {
+      const max = niceMax(maxRevenueValue.value * 1000)
+      const n = monthlyRevenue.value.length || 1
+      const slot = PLOT_W / n
+      const sym = currencySymbol.value
+      const bars = monthlyRevenue.value.map((m, i) => {
+        const cx = L + slot * i + slot / 2
+        const revH = (m.revenue / max) * PLOT_H
+        const costH = (m.costs / max) * PLOT_H
+        return {
+          month: m.month,
+          label: translateMonth(m.month),
+          cx,
+          revX: cx - BAR - GAP / 2,
+          costX: cx + GAP / 2,
+          revY: T + PLOT_H - revH,
+          revH,
+          costY: T + PLOT_H - costH,
+          costH,
+          revTitle: `${t('finance.revenueVsCosts.revenue')}: ${sym}${m.revenue.toLocaleString()}`,
+          costTitle: `${t('finance.revenueVsCosts.costs')}: ${sym}${m.costs.toLocaleString()}`
+        }
+      })
+      return {
+        ticks: makeTicks(max, 4, (v) => (v === 0 ? `${sym}0` : `${sym}${Math.round(v / 1000).toLocaleString()}K`)),
+        bars
+      }
+    })
+
+    const COST_KEYS = ['procurement', 'operational', 'labor', 'overhead']
+
+    const costChart = computed(() => {
+      const sym = currencySymbol.value
+      const peak = Math.max(0, ...monthlySpending.value.map(m => COST_KEYS.reduce((s, k) => s + m[k], 0)))
+      const max = niceMax(peak)
+      const n = monthlySpending.value.length || 1
+      const slot = PLOT_W / n
+      const bars = monthlySpending.value.map((m, i) => {
+        const cx = L + slot * i + slot / 2
+        let base = 0
+        const segments = COST_KEYS.map((key, idx) => {
+          const raw = (m[key] / max) * PLOT_H
+          const y = T + PLOT_H - base - raw
+          base += raw
+          return {
+            key,
+            index: idx + 1,
+            y: y + (raw > GAP ? GAP : 0),
+            h: raw > GAP ? raw - GAP : raw,
+            title: `${t('finance.monthlyCostFlow.' + key)}: ${sym}${m[key].toLocaleString()}`
+          }
+        })
+        return { month: m.month, label: translateMonth(m.month), x: cx - STACK_BAR / 2, segments, data: m }
+      })
+      return {
+        ticks: makeTicks(max, 4, (v) => (v === 0 ? `${sym}0` : `${sym}${Math.round(v / 1000).toLocaleString()}K`)),
+        bars
+      }
+    })
+
     const handleTransactionClick = (transaction) => {
       console.log('Transaction clicked:', transaction)
       alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: $${transaction.amount.toLocaleString()}`)
@@ -475,8 +541,9 @@ export default {
       maxRevenueValue,
       formatCurrency,
       currencySymbol,
-      getBarHeight,
-      getRevenueBarHeight,
+      revenueChart,
+      costChart,
+      CH: { W, H, L, R, T, B, PLOT_W, PLOT_H, BAR, STACK_BAR },
       formatDate,
       formatDateShort,
       translateMonth,
@@ -492,361 +559,121 @@ export default {
 </script>
 
 <style scoped>
-.stat-change {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
+.legend {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stat-change.positive {
-  color: #059669;
-}
-
-.stat-change.negative {
-  color: #dc2626;
-}
-
-.change-icon {
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.chart-card {
-  margin-bottom: 1.75rem;
-}
-
-.chart-legend {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
+  flex-wrap: wrap;
+  gap: var(--s-4);
 }
 
 .legend-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
+  gap: var(--s-2);
 }
 
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius);
 }
 
-.legend-dot.procurement { background: #3b82f6; }
-.legend-dot.operational { background: #8b5cf6; }
-.legend-dot.labor { background: #10b981; }
-.legend-dot.overhead { background: #f59e0b; }
-.legend-dot.revenue-color { background: #0f172a; }
-.legend-dot.cost-color { background: #ef4444; }
-
-.stats-grid-finance {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.revenue-card {
-  border-left: 4px solid #0f172a;
-}
-
-.cost-card {
-  border-left: 4px solid #ef4444;
-}
-
-.profit-card {
-  border-left: 4px solid #3b82f6;
-}
-
-.stat-meta {
-  margin-top: 0.5rem;
-  font-size: 0.813rem;
-  color: #64748b;
-}
-
-.bar-group-revenue {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  height: 100%;
-}
-
-.revenue-bars {
-  width: 100%;
-  max-width: 80px;
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  align-items: flex-end;
-  height: 100%;
-  padding-bottom: 2rem;
-}
-
-.revenue-bar, .cost-bar {
-  width: 50%;
-  max-width: 30px;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  min-height: 4px;
-}
-
-.revenue-bar {
-  background: #0f172a;
-}
-
-.cost-bar {
-  background: #ef4444;
-}
-
-.revenue-bar:hover, .cost-bar:hover {
-  opacity: 0.8;
-  transform: scaleY(1.05);
-}
-
-.chart-container {
-  padding: 1.5rem 0;
-}
-
-.bar-chart {
-  display: flex;
-  gap: 1.5rem;
-  height: 350px;
-}
-
-.y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-right: 1rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  border-right: 1px solid #e2e8f0;
-}
-
-.chart-area {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: 0.5rem;
-}
-
-.bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  height: 100%;
-}
-
-.stacked-bar {
-  width: 100%;
-  max-width: 60px;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: stretch;
-  height: 100%;
-  padding-bottom: 2rem;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.stacked-bar:hover {
-  opacity: 0.85;
-}
-
-.bar-segment {
-  width: 100%;
-  transition: all 0.3s ease;
-  cursor: pointer;
+.chart {
   display: block;
+  width: 100%;
+  height: auto;
 }
 
-.bar-segment:first-child {
-  border-radius: 0 0 6px 6px;
+.grid {
+  stroke: var(--rule);
+  stroke-width: 1;
 }
 
-.bar-segment:last-child {
-  border-radius: 6px 6px 0 0;
+.baseline {
+  stroke: var(--ink);
+  stroke-width: 1;
 }
 
-.bar-segment.procurement { background: #3b82f6; }
-.bar-segment.operational { background: #8b5cf6; }
-.bar-segment.labor { background: #10b981; }
-.bar-segment.overhead { background: #f59e0b; }
-
-.bar-segment:hover {
-  opacity: 0.8;
+.axis-text {
+  fill: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
-.bar-label {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
+.hit {
+  fill: transparent;
 }
 
-.two-column-grid {
+.bar-group.is-clickable {
+  cursor: pointer;
+  outline: none;
+}
+
+.bar-group.is-clickable:focus-visible .hit {
+  stroke: var(--signal);
+  stroke-width: 2;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bar-group.is-clickable:hover .hit {
+    fill: var(--paper-sunk);
+  }
+}
+
+.two-col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(28rem, 100%), 1fr));
+  gap: var(--s-6);
 }
 
 .category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  list-style: none;
 }
 
 .category-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  padding: var(--s-3) 0;
+  border-bottom: var(--hair);
 }
 
 .category-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  font-size: var(--fs-table);
 }
 
 .category-name {
   font-weight: 600;
-  color: #0f172a;
 }
 
-.category-amount {
-  font-weight: 700;
-  color: #2563eb;
-  font-size: 1.125rem;
-}
-
-.category-bar-container {
-  width: 100%;
-  height: 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
+.track {
+  height: 6px;
+  margin: var(--s-2) 0;
+  background: var(--paper-sunk);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
-.category-bar {
+.fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 4px;
-  transition: width 0.6s ease;
+  background: var(--chart-1);
 }
 
 .category-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.813rem;
+  font-size: var(--fs-sm);
 }
 
-.percentage {
-  color: #64748b;
+.up {
+  color: var(--ok);
 }
 
-.change {
-  font-weight: 600;
+.down {
+  color: var(--bad);
 }
 
-.change.positive {
-  color: #059669;
-}
-
-.change.negative {
-  color: #dc2626;
-}
-
-.transactions-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.transactions-table-container {
-  overflow-y: auto;
-  max-height: 400px;
-}
-
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.transactions-table thead {
-  position: sticky;
-  top: 0;
-  background: #f8fafc;
-  z-index: 1;
-}
-
-.transactions-table th {
-  text-align: left;
-  padding: 0.625rem 0.75rem;
-  font-weight: 600;
-  color: #475569;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.transactions-table th.text-right {
-  text-align: right;
-}
-
-.transactions-table td {
-  padding: 0.75rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.875rem;
-}
-
-.transactions-table tbody tr {
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.transactions-table tbody tr:hover {
-  background: #f8fafc;
-}
-
-.transactions-table tbody tr.clickable-row:hover {
-  background: #eff6ff;
-}
-
-.transaction-id {
-  color: #64748b;
-  font-weight: 500;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.813rem;
-}
-
-.transaction-description {
-  color: #0f172a;
-  font-weight: 500;
-}
-
-.transaction-vendor {
-  color: #64748b;
-}
-
-.transaction-date {
-  color: #64748b;
-  font-size: 0.813rem;
-}
-
-.transaction-amount {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.text-right {
-  text-align: right;
+.ledger tr:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: -2px;
 }
 </style>
