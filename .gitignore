@@ -53,3 +53,6 @@ logs/
 
 # Environment variables
 .env
+
+# SQLite file for restock orders
+server/restock.db

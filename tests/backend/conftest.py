@@ -1,7 +1,9 @@
 """
 Pytest configuration and fixtures for backend API tests.
 """
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -10,6 +12,9 @@ from fastapi.testclient import TestClient
 # Add server directory to path
 server_path = Path(__file__).parent.parent.parent / "server"
 sys.path.insert(0, str(server_path))
+
+# Keep test restock orders out of the real SQLite file; set before main is imported
+os.environ["RESTOCK_DB_PATH"] = os.path.join(tempfile.mkdtemp(), "restock.db")
 
 from main import app
 
