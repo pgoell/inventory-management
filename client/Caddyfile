@@ -1,0 +1,6 @@
+:3000 {
+	root * /srv
+	# Vue router uses history mode: unknown paths get index.html.
+	try_files {path} /index.html
+	file_server
+}

@@ -126,6 +126,7 @@
 
 <script>
 import axios from 'axios'
+import { API_BASE_URL } from '../api'
 
 export default {
   name: 'Reports',
@@ -153,13 +154,13 @@ export default {
 
         // Fetch quarterly data
         console.log('Fetching quarterly data...')
-        const quarterlyResponse = await axios.get('http://localhost:8001/api/reports/quarterly')
+        const quarterlyResponse = await axios.get(`${API_BASE_URL}/reports/quarterly`)
         this.quarterlyData = quarterlyResponse.data
         console.log('Quarterly data:', this.quarterlyData)
 
         // Fetch monthly data
         console.log('Fetching monthly data...')
-        const monthlyResponse = await axios.get('http://localhost:8001/api/reports/monthly-trends')
+        const monthlyResponse = await axios.get(`${API_BASE_URL}/reports/monthly-trends`)
         this.monthlyData = monthlyResponse.data
         console.log('Monthly data:', this.monthlyData)
 
