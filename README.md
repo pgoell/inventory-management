@@ -8,7 +8,7 @@ A full-stack demo application for a Claude Code workshop — inventory managemen
 
 - **Frontend**: Vue 3 + Vite (port 3000)
 - **Backend**: Python FastAPI (port 8001)
-- **Data**: In-memory mock data (no database)
+- **Data**: Mock data from JSON files, held in memory; submitted restocking orders persist in SQLite
 
 ## Features
 
@@ -16,8 +16,10 @@ A full-stack demo application for a Claude Code workshop — inventory managemen
 - Inventory tracking across multiple warehouses
 - Order management with status tracking
 - Demand forecasting with trend analysis
-- Backlog monitoring
-- Spending analytics
+- Backlog monitoring, with purchase orders for shortages
+- Restocking: set a budget, get a suggested order from the demand forecast, place it
+- Spending analytics and quarterly reports
+- Personal task list (profile menu)
 
 ## Quick Start
 
@@ -48,14 +50,18 @@ npm run dev
 
 ## API Endpoints
 
-All endpoints support optional filtering via query params: `warehouse`, `category`, `status`, `month`
+Filters go in as query params: `warehouse`, `category`, `status`, `month` (`2025-01` or `Q1-2025`).
 
-- `GET /api/inventory` - Inventory items
-- `GET /api/orders` - Orders
-- `GET /api/demand` - Demand forecasts
+- `GET /api/inventory` - Inventory items (`warehouse`, `category`)
+- `GET /api/orders` - Orders (all four filters)
+- `GET /api/dashboard/summary` - Summary statistics (all four filters)
+- `GET /api/reports/quarterly`, `GET /api/reports/monthly-trends` - Reports
+- `GET /api/demand` - Demand forecasts with unit cost and lead time
 - `GET /api/backlog` - Backlog items
-- `GET /api/dashboard/summary` - Summary statistics
 - `GET /api/spending/*` - Spending data
+- `GET /api/restock-orders`, `POST /api/restock-orders` - Restocking orders (SQLite)
+- `POST /api/purchase-orders`, `GET /api/purchase-orders/{backlog_item_id}` - Purchase orders for backlog items (in memory)
+- `GET /api/tasks`, `POST /api/tasks`, `PATCH /api/tasks/{id}` (toggle), `DELETE /api/tasks/{id}` - Tasks (in memory)
 
 ## Demo Data
 

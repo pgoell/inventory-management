@@ -1,40 +1,57 @@
 <template>
   <div class="reports">
-    <div class="page-header">
+    <div class="page-head">
       <h2>{{ t('reports.title') }}</h2>
       <p>{{ t('reports.description') }}</p>
     </div>
 
     <div v-if="loading" class="loading">{{ t('reports.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else-if="!quarterlyData.length && !monthlyData.length" class="loading">{{ t('reports.empty') }}</div>
+    <div v-else-if="!quarterlyData.length && !monthlyData.length" class="empty">{{ t('reports.empty') }}</div>
     <div v-else>
-      <!-- Quarterly Performance -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('reports.quarterly.title') }}</h3>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">{{ t('reports.stats.totalRevenue') }}</span>
+          <span class="stat-value">{{ formatCurrency(totalRevenue, currentCurrency) }}</span>
         </div>
-        <div class="table-container">
-          <table class="reports-table">
+        <div class="stat">
+          <span class="stat-label">{{ t('reports.stats.avgMonthlyRevenue') }}</span>
+          <span class="stat-value">{{ formatCurrency(avgMonthlyRevenue, currentCurrency) }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">{{ t('reports.stats.totalOrders') }}</span>
+          <span class="stat-value">{{ totalOrders.toLocaleString('en-US') }}</span>
+        </div>
+        <div class="stat is-signal">
+          <span class="stat-label">{{ t('reports.stats.bestQuarter') }}</span>
+          <span class="stat-value">{{ bestQuarter || t('reports.notAvailable') }}</span>
+        </div>
+      </div>
+
+      <!-- Quarterly Performance -->
+      <div class="section">
+        <div class="section-label">
+          <span>{{ t('reports.quarterly.title') }}</span>
+        </div>
+        <div class="ledger-wrap">
+          <table class="ledger">
             <thead>
               <tr>
                 <th>{{ t('reports.quarterly.quarter') }}</th>
-                <th>{{ t('reports.quarterly.totalOrders') }}</th>
-                <th>{{ t('reports.quarterly.totalRevenue') }}</th>
-                <th>{{ t('reports.quarterly.avgOrderValue') }}</th>
+                <th class="num">{{ t('reports.quarterly.totalOrders') }}</th>
+                <th class="num">{{ t('reports.quarterly.totalRevenue') }}</th>
+                <th class="num">{{ t('reports.quarterly.avgOrderValue') }}</th>
                 <th>{{ t('reports.quarterly.fulfillmentRate') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="q in quarterlyData" :key="q.quarter">
-                <td><strong>{{ q.quarter }}</strong></td>
-                <td>{{ q.total_orders }}</td>
-                <td>{{ formatCurrency(q.total_revenue, currentCurrency) }}</td>
-                <td>{{ formatCurrencyWithDecimals(q.avg_order_value, currentCurrency, 2) }}</td>
+                <td class="strong">{{ q.quarter }}</td>
+                <td class="num">{{ q.total_orders.toLocaleString('en-US') }}</td>
+                <td class="num">{{ formatCurrency(q.total_revenue, currentCurrency) }}</td>
+                <td class="num">{{ formatCurrencyWithDecimals(q.avg_order_value, currentCurrency, 2) }}</td>
                 <td>
-                  <span :class="getFulfillmentClass(q.fulfillment_rate)">
-                    {{ q.fulfillment_rate }}%
-                  </span>
+                  <span :class="getFulfillmentClass(q.fulfillment_rate)">{{ q.fulfillment_rate }}%</span>
                 </td>
               </tr>
             </tbody>
@@ -43,82 +60,84 @@
       </div>
 
       <!-- Monthly Trends Chart -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('reports.trend.title') }}</h3>
+      <div class="section">
+        <div class="section-label">
+          <span>{{ t('reports.trend.title') }}</span>
         </div>
-        <div class="chart-container">
-          <div class="bar-chart">
-            <div v-for="month in monthlyData" :key="month.month" class="bar-wrapper">
-              <div class="bar-container">
-                <div
-                  class="bar"
-                  :style="{ height: getBarHeight(month.revenue) + 'px' }"
-                  :title="formatCurrency(month.revenue, currentCurrency)"
-                ></div>
-              </div>
-              <div class="bar-label">{{ formatMonth(month.month) }}</div>
-            </div>
-          </div>
+        <div class="chart">
+          <svg
+            :viewBox="`0 0 ${chart.width} ${chart.height}`"
+            class="chart-svg"
+            role="img"
+            :aria-label="t('reports.trend.title')"
+          >
+            <line
+              :x1="chart.left"
+              :x2="chart.width - chart.right"
+              :y1="chart.baseline"
+              :y2="chart.baseline"
+              class="grid-line base-line"
+            />
+            <g v-for="tick in chart.ticks" :key="tick.value">
+              <line
+                :x1="chart.left"
+                :x2="chart.width - chart.right"
+                :y1="tick.y"
+                :y2="tick.y"
+                class="grid-line"
+              />
+              <text :x="chart.left - 8" :y="tick.y" class="axis-text" text-anchor="end" dominant-baseline="middle">
+                {{ formatCurrency(tick.value, currentCurrency) }}
+              </text>
+            </g>
+            <g v-for="bar in chart.bars" :key="bar.month">
+              <rect :x="bar.x" :y="bar.y" :width="bar.w" :height="bar.h" rx="2" class="bar">
+                <title>{{ formatCurrency(bar.revenue, currentCurrency) }}</title>
+              </rect>
+              <text :x="bar.x + bar.w / 2" :y="chart.height - chart.bottom + 16" class="axis-text" text-anchor="middle">
+                {{ formatMonth(bar.month, true) }}
+              </text>
+            </g>
+          </svg>
         </div>
       </div>
 
       <!-- Month-over-Month Comparison -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">{{ t('reports.mom.title') }}</h3>
+      <div class="section">
+        <div class="section-label">
+          <span>{{ t('reports.mom.title') }}</span>
         </div>
-        <div class="table-container">
-          <table class="reports-table">
+        <div class="ledger-wrap">
+          <table class="ledger">
             <thead>
               <tr>
                 <th>{{ t('reports.mom.month') }}</th>
-                <th>{{ t('reports.mom.orders') }}</th>
-                <th>{{ t('reports.mom.revenue') }}</th>
-                <th>{{ t('reports.mom.change') }}</th>
-                <th>{{ t('reports.mom.growthRate') }}</th>
+                <th class="num">{{ t('reports.mom.orders') }}</th>
+                <th class="num">{{ t('reports.mom.revenue') }}</th>
+                <th class="num">{{ t('reports.mom.change') }}</th>
+                <th class="num">{{ t('reports.mom.growthRate') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(month, index) in monthlyData" :key="month.month">
-                <td><strong>{{ formatMonth(month.month) }}</strong></td>
-                <td>{{ month.order_count }}</td>
-                <td>{{ formatCurrency(month.revenue, currentCurrency) }}</td>
-                <td>
+                <td class="strong">{{ formatMonth(month.month) }}</td>
+                <td class="num">{{ month.order_count.toLocaleString('en-US') }}</td>
+                <td class="num">{{ formatCurrency(month.revenue, currentCurrency) }}</td>
+                <td class="num">
                   <span v-if="index > 0" :class="getChangeClass(month.revenue, monthlyData[index - 1].revenue)">
                     {{ getChangeValue(month.revenue, monthlyData[index - 1].revenue) }}
                   </span>
-                  <span v-else>{{ t('reports.none') }}</span>
+                  <span v-else class="muted">{{ t('reports.none') }}</span>
                 </td>
-                <td>
+                <td class="num">
                   <span v-if="index > 0" :class="getChangeClass(month.revenue, monthlyData[index - 1].revenue)">
                     {{ getGrowthRate(month.revenue, monthlyData[index - 1].revenue) }}
                   </span>
-                  <span v-else>{{ t('reports.none') }}</span>
+                  <span v-else class="muted">{{ t('reports.none') }}</span>
                 </td>
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- Summary Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.totalRevenue') }}</div>
-          <div class="stat-value">{{ formatCurrency(totalRevenue, currentCurrency) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.avgMonthlyRevenue') }}</div>
-          <div class="stat-value">{{ formatCurrency(avgMonthlyRevenue, currentCurrency) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.totalOrders') }}</div>
-          <div class="stat-value">{{ totalOrders }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.bestQuarter') }}</div>
-          <div class="stat-value">{{ bestQuarter || t('reports.notAvailable') }}</div>
         </div>
       </div>
     </div>
@@ -193,23 +212,62 @@ export default {
       return best && best.total_revenue > 0 ? best.quarter : ''
     })
 
-    const formatMonth = (monthStr) => {
+    // short = month only, for chart axis labels
+    const formatMonth = (monthStr, short = false) => {
       const [year, month] = monthStr.split('-').map(Number)
       const date = new Date(year, month - 1, 1)
       if (isNaN(date.getTime())) return monthStr
       const locale = currentLocale.value === 'ja' ? 'ja-JP' : 'en-US'
-      return date.toLocaleDateString(locale, { month: 'short', year: 'numeric' })
+      return date.toLocaleDateString(locale, short ? { month: 'short' } : { month: 'short', year: 'numeric' })
     }
 
-    // Max bar height is 200px
-    const getBarHeight = (revenue) => {
-      return maxRevenue.value === 0 ? 0 : (revenue / maxRevenue.value) * 200
+    // Round the axis top up to 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8 or 10 x a power of ten
+    const niceMax = (max) => {
+      if (max <= 0) return 1
+      const pow = Math.pow(10, Math.floor(Math.log10(max)))
+      const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find(s => s * pow >= max)
+      return step * pow
     }
+
+    const chart = computed(() => {
+      const width = 1100
+      const height = 300
+      const left = 96
+      const right = 16
+      const top = 12
+      const bottom = 28
+      const plotW = width - left - right
+      const plotH = height - top - bottom
+      const axisMax = niceMax(maxRevenue.value)
+      const yOf = (v) => top + plotH - (v / axisMax) * plotH
+
+      const ticks = [1, 2, 3, 4].map(i => {
+        const value = (axisMax / 4) * i
+        return { value, y: yOf(value) }
+      })
+
+      const n = monthlyData.value.length
+      const slot = n ? plotW / n : plotW
+      const barW = Math.min(slot * 0.6, 56)
+      const bars = monthlyData.value.map((m, i) => {
+        const y = yOf(m.revenue)
+        return {
+          month: m.month,
+          revenue: m.revenue,
+          x: left + slot * i + (slot - barW) / 2,
+          w: barW,
+          y,
+          h: top + plotH - y
+        }
+      })
+
+      return { width, height, left, right, bottom, baseline: yOf(0), ticks, bars }
+    })
 
     const getFulfillmentClass = (rate) => {
-      if (rate >= 90) return 'badge success'
-      if (rate >= 75) return 'badge warning'
-      return 'badge danger'
+      if (rate >= 90) return 'tag tag--ok'
+      if (rate >= 75) return 'tag tag--warn'
+      return 'tag tag--bad'
     }
 
     const getChangeValue = (current, previous) => {
@@ -222,8 +280,8 @@ export default {
 
     const getChangeClass = (current, previous) => {
       const change = current - previous
-      if (change > 0) return 'positive-change'
-      if (change < 0) return 'negative-change'
+      if (change > 0) return 'change-up'
+      if (change < 0) return 'change-down'
       return ''
     }
 
@@ -247,7 +305,7 @@ export default {
       formatCurrency,
       formatCurrencyWithDecimals,
       formatMonth,
-      getBarHeight,
+      chart,
       getFulfillmentClass,
       getChangeValue,
       getChangeClass,
@@ -258,171 +316,53 @@ export default {
 </script>
 
 <style scoped>
-.reports {
-  padding: 0;
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  margin-bottom: 1.5rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
+.strong {
   font-weight: 600;
-  color: #0f172a;
-  margin: 0;
 }
 
-.reports-table {
+.chart {
+  padding-top: var(--s-2);
+}
+
+.chart-svg {
+  display: block;
   width: 100%;
-  border-collapse: collapse;
+  height: auto;
 }
 
-.reports-table th {
-  background: #f8fafc;
-  padding: 0.75rem;
-  text-align: left;
-  font-weight: 600;
-  color: #64748b;
-  border-bottom: 2px solid #e2e8f0;
+.grid-line {
+  stroke: var(--rule);
+  stroke-width: 1;
 }
 
-.reports-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+.axis-text {
+  fill: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
-.reports-table tr:hover {
-  background: #f8fafc;
-}
-
-.chart-container {
-  padding: 2rem 1rem;
-  min-height: 300px;
-}
-
-.bar-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 250px;
-  gap: 0.5rem;
-}
-
-.bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  max-width: 80px;
-}
-
-.bar-container {
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
+.base-line {
+  stroke: var(--rule-strong);
 }
 
 .bar {
-  width: 100%;
-  background: linear-gradient(to top, #3b82f6, #60a5fa);
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s;
-  cursor: pointer;
+  fill: var(--chart-1);
 }
 
-.bar:hover {
-  background: linear-gradient(to top, #2563eb, #3b82f6);
+@media (hover: hover) and (pointer: fine) {
+  .bar {
+    transition: fill var(--dur-ui) ease;
+  }
+  .bar:hover {
+    fill: color-mix(in srgb, var(--chart-1) 82%, var(--ink));
+  }
 }
 
-.bar-label {
-  font-size: 0.75rem;
-  color: #64748b;
-  text-align: center;
-  transform: rotate(-45deg);
-  white-space: nowrap;
-  margin-top: 1.5rem;
+.change-up {
+  color: var(--ok);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #3b82f6;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.badge.success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.warning {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.badge.danger {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.positive-change {
-  color: #16a34a;
-  font-weight: 600;
-}
-
-.negative-change {
-  color: #dc2626;
-  font-weight: 600;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
-}
-
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
+.change-down {
+  color: var(--bad);
 }
 </style>

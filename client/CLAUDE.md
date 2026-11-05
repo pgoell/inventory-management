@@ -15,6 +15,9 @@ npm run dev
 ### Vue 3 Composition API Patterns
 
 **Component Structure:**
+
+Most components use the `export default { setup() }` form below; new components follow it. `ProfileMenu.vue` and `LanguageSwitcher.vue` use `<script setup>`; leave them as they are.
+
 ```vue
 <template>
   <!-- Template: Keep clean and declarative -->

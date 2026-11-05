@@ -137,7 +137,8 @@ def get_item(item_id: str):
 **Pattern:**
 - Load all data from JSON files at startup
 - Data lives in memory during server runtime
-- Changes don't persist (restart reloads from files)
+- Changes don't persist (restart reloads from files); tasks and purchase orders also live in memory
+- Exception: submitted restocking orders persist in SQLite (`restock_db.py`, path from `RESTOCK_DB_PATH`)
 - Keep JSON files well-formatted and validated
 
 **Adding New Data:**
@@ -281,6 +282,6 @@ server/
 
 **Start server:** `uv run python main.py`
 **API docs:** http://localhost:8001/docs
-**Run tests:** `cd ../tests && uv run pytest backend/ -v`
+**Run tests:** `cd ../tests && uv run --project ../server pytest backend/ -v`
 **Add endpoint:** Define model → Add route → Write tests
 **Add filter:** Add query param → Check 'all' value → Filter data

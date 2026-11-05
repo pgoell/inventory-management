@@ -60,7 +60,10 @@ export default {
       daysDelayed: 'Days Delayed',
       priority: 'Priority',
       unitsShort: 'units short',
-      days: 'days'
+      days: 'days',
+      actions: 'Actions',
+      createPO: 'Create PO',
+      viewPO: 'View PO'
     },
     topProducts: {
       title: 'Top Products by Revenue',
@@ -440,6 +443,28 @@ export default {
   },
 
   // Common
+  purchaseOrder: {
+    createTitle: 'Create Purchase Order',
+    viewTitle: 'Purchase Order',
+    orderId: 'Order ID',
+    sku: 'SKU',
+    item: 'Item',
+    shortage: 'Shortage',
+    unitsShort: '{count} units short',
+    supplier: 'Supplier',
+    quantity: 'Quantity',
+    unitCost: 'Unit Cost',
+    total: 'Total',
+    expectedDelivery: 'Expected Delivery',
+    createdDate: 'Created',
+    status: 'Status',
+    notes: 'Notes',
+    submit: 'Create Purchase Order',
+    saving: 'Saving...',
+    loadError: 'Failed to load the purchase order',
+    createError: 'Failed to create the purchase order'
+  },
+
   common: {
     loading: 'Loading...',
     error: 'Error',

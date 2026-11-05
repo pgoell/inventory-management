@@ -13,17 +13,19 @@ All backend tests must be placed in `tests/backend/`:
 
 ```
 tests/backend/
-├── conftest.py           # Shared fixtures and test client setup
-├── test_inventory.py     # Inventory endpoint tests
-├── test_orders.py        # Orders endpoint tests
-├── test_dashboard.py     # Dashboard endpoint tests
-└── test_misc_endpoints.py # Other endpoint tests
+├── conftest.py                     # Shared fixtures, test client, temp SQLite path
+├── test_inventory.py               # Inventory endpoint tests
+├── test_dashboard.py               # Dashboard endpoint tests
+├── test_reports.py                 # Reports endpoint tests
+├── test_restock.py                 # Restocking order tests (SQLite)
+├── test_tasks_purchase_orders.py   # Task and purchase order tests
+└── test_misc_endpoints.py          # Demand, backlog, spending tests
 ```
 
 ## File Organization
 
 ### 1. File Naming
-- Use `test_<feature>.py` format (e.g., `test_inventory.py`, `test_orders.py`)
+- Use `test_<feature>.py` format (e.g., `test_inventory.py`, `test_restock.py`)
 - Group related endpoints in the same file
 - Create new files for distinct API feature areas
 
@@ -359,8 +361,17 @@ assert abs(calculated - expected) < 0.01
 - `GET /api/dashboard/summary` - Dashboard summary
   - Filters: `warehouse`, `category`, `status`, `month`
 
+### Reports Endpoints
+- `GET /api/reports/quarterly`, `GET /api/reports/monthly-trends`
+  - Filters: `warehouse`, `category`, `status`, `month`
+
+### Restocking, Purchase Order and Task Endpoints
+- `GET /api/restock-orders`, `POST /api/restock-orders` - SQLite-backed; tests use a temp file set in `conftest.py`
+- `POST /api/purchase-orders`, `GET /api/purchase-orders/{backlog_item_id}` - in memory
+- `GET /api/tasks`, `POST /api/tasks`, `PATCH /api/tasks/{id}`, `DELETE /api/tasks/{id}` - in memory
+
 ### Other Endpoints
-- `GET /api/demand` - Demand forecast (no filters)
+- `GET /api/demand` - Demand forecast with `unit_cost` and `lead_time_days` (no filters)
 - `GET /api/backlog` - Backlog items (no filters)
 - `GET /api/spending/*` - Spending data endpoints
 
@@ -406,22 +417,22 @@ assert abs(calculated - expected) < 0.01
 
 ```bash
 # Run all backend tests
-pytest tests/backend/
+cd tests && uv run --project ../server pytest backend/
 
 # Run specific test file
-pytest tests/backend/test_orders.py
+cd tests && uv run --project ../server pytest backend/test_inventory.py
 
 # Run specific test class
-pytest tests/backend/test_orders.py::TestOrdersEndpoints
+cd tests && uv run --project ../server pytest backend/test_inventory.py::TestInventoryEndpoints
 
 # Run specific test method
-pytest tests/backend/test_orders.py::TestOrdersEndpoints::test_get_all_orders
+cd tests && uv run --project ../server pytest backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory
 
 # Run with verbose output
-pytest tests/backend/ -v
+cd tests && uv run --project ../server pytest backend/ -v
 
 # Run with coverage
-pytest tests/backend/ --cov=server
+cd tests && uv run --project ../server pytest backend/ --cov=server
 ```
 
 ## Example: Complete Test File Template
