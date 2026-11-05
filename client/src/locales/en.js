@@ -314,6 +314,29 @@ export default {
   },
 
   // Reports
+  backlog: {
+    title: 'Backlog Management',
+    description: 'Track and resolve inventory shortages',
+    loading: 'Loading backlog...',
+    loadError: 'Failed to load backlog',
+    highPriority: 'High Priority',
+    mediumPriority: 'Medium Priority',
+    lowPriority: 'Low Priority',
+    totalItems: 'Total Backlog Items',
+    items: 'Backlog Items',
+    empty: 'No backlog items - all orders can be fulfilled!',
+    orderId: 'Order ID',
+    sku: 'SKU',
+    itemName: 'Item Name',
+    quantityNeeded: 'Quantity Needed',
+    quantityAvailable: 'Quantity Available',
+    shortage: 'Shortage',
+    daysDelayed: 'Days Delayed',
+    priority: 'Priority',
+    unitsShort: '{count} units short',
+    days: '{count} days'
+  },
+
   reports: {
     title: 'Performance Reports',
     description: 'View quarterly performance metrics and monthly trends',

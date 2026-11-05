@@ -30,7 +30,7 @@ There is no linter and no frontend test suite. Test a UI change in the browser w
 - Four filters (time period, warehouse, category, order status) live in `useFilters.js` and go to the API as query params. The value `all` means no filter, and the client leaves it out. The server filters lists in Python (`apply_filters`, `filter_by_month` in `main.py`); `month` takes `2025-01` or a quarter such as `Q1-2025`.
 - Inventory has no time dimension, so `/api/inventory` ignores `month`. `/api/demand`, `/api/backlog` and `/api/spending/*` take no filters.
 - A change to the shape of a JSON file in `server/data/` needs the matching Pydantic model in `main.py` changed too.
-- UI text goes through `t()` from `useI18n.js`, with a key in both `src/locales/en.js` and `src/locales/ja.js`. `Backlog.vue` still hardcodes English.
+- UI text goes through `t()` from `useI18n.js`, with a key in both `src/locales/en.js` and `src/locales/ja.js`.
 - Server dependencies live twice: `pyproject.toml` for uv, `requirements.txt` for the Docker image. Change both.
 
 ## Deploy
