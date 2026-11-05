@@ -23,7 +23,7 @@ cd tests && uv run --project ../server pytest backend/test_inventory.py::TestInv
 cd client && npm run build                     # client/dist/
 ```
 
-There is no linter and no frontend test suite.
+There is no linter and no frontend test suite. Test a UI change in the browser with the Chrome DevTools MCP tools (`mcp__chrome-devtools__*`): start both servers, open your own page with `new_page` on `http://localhost:3000`, check the views you touched with `take_snapshot` and `list_console_messages`, and close the page when done.
 
 ## How it fits together
 
