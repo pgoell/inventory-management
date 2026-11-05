@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
+from uuid import uuid4
 from pydantic import BaseModel
 import restock_db
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
@@ -116,6 +117,18 @@ class PurchaseOrder(BaseModel):
     status: str
     created_date: str
     notes: Optional[str] = None
+
+class Task(BaseModel):
+    id: str
+    title: str
+    priority: str
+    dueDate: str
+    status: str
+
+class CreateTaskRequest(BaseModel):
+    title: str
+    priority: str
+    dueDate: str
 
 class CreatePurchaseOrderRequest(BaseModel):
     backlog_item_id: str
@@ -251,6 +264,56 @@ def create_restock_order(request: CreateRestockOrderRequest):
     order["id"] = restock_db.insert_order(order)
     return order
 
+# Tasks and purchase orders live in memory and reset on restart.
+tasks: List[dict] = []
+
+@app.get("/api/tasks", response_model=List[Task])
+def get_tasks():
+    return tasks
+
+@app.post("/api/tasks", response_model=Task)
+def create_task(request: CreateTaskRequest):
+    task = {"id": str(uuid4()), **request.model_dump(), "status": "pending"}
+    tasks.insert(0, task)
+    return task
+
+def find_task(task_id: str) -> dict:
+    task = next((t for t in tasks if t["id"] == task_id), None)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+@app.patch("/api/tasks/{task_id}", response_model=Task)
+def toggle_task(task_id: str):
+    task = find_task(task_id)
+    task["status"] = "completed" if task["status"] == "pending" else "pending"
+    return task
+
+@app.delete("/api/tasks/{task_id}")
+def delete_task(task_id: str):
+    tasks.remove(find_task(task_id))
+    return {"id": task_id}
+
+@app.post("/api/purchase-orders", response_model=PurchaseOrder)
+def create_purchase_order(request: CreatePurchaseOrderRequest):
+    if not any(item["id"] == request.backlog_item_id for item in backlog_items):
+        raise HTTPException(status_code=404, detail="Backlog item not found")
+    purchase_order = {
+        "id": str(uuid4()),
+        **request.model_dump(),
+        "status": "Pending",
+        "created_date": date.today().isoformat(),
+    }
+    purchase_orders.append(purchase_order)
+    return purchase_order
+
+@app.get("/api/purchase-orders/{backlog_item_id}", response_model=PurchaseOrder)
+def get_purchase_order_by_backlog_item(backlog_item_id: str):
+    purchase_order = next((po for po in purchase_orders if po["backlog_item_id"] == backlog_item_id), None)
+    if not purchase_order:
+        raise HTTPException(status_code=404, detail="Purchase order not found")
+    return purchase_order
+
 @app.get("/api/dashboard/summary")
 def get_dashboard_summary(
     warehouse: Optional[str] = None,
@@ -299,82 +362,73 @@ def get_recent_transactions():
     """Get recent transactions"""
     return recent_transactions
 
+MONTH_TO_QUARTER = {m: q for q, months in QUARTER_MAP.items() for m in months}
+
+def filtered_orders(warehouse, category, status, month) -> list:
+    return filter_by_month(apply_filters(orders, warehouse, category, status), month)
+
 @app.get("/api/reports/quarterly")
-def get_quarterly_reports():
+def get_quarterly_reports(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
     """Get quarterly performance reports"""
-    # Calculate quarterly statistics from orders
     quarters = {}
 
-    for order in orders:
-        order_date = order.get('order_date', '')
-        # Determine quarter
-        if '2025-01' in order_date or '2025-02' in order_date or '2025-03' in order_date:
-            quarter = 'Q1-2025'
-        elif '2025-04' in order_date or '2025-05' in order_date or '2025-06' in order_date:
-            quarter = 'Q2-2025'
-        elif '2025-07' in order_date or '2025-08' in order_date or '2025-09' in order_date:
-            quarter = 'Q3-2025'
-        elif '2025-10' in order_date or '2025-11' in order_date or '2025-12' in order_date:
-            quarter = 'Q4-2025'
-        else:
+    for order in filtered_orders(warehouse, category, status, month):
+        quarter = MONTH_TO_QUARTER.get(order.get('order_date', '')[:7])
+        if not quarter:
             continue
 
-        if quarter not in quarters:
-            quarters[quarter] = {
-                'quarter': quarter,
-                'total_orders': 0,
-                'total_revenue': 0,
-                'delivered_orders': 0,
-                'avg_order_value': 0
-            }
-
-        quarters[quarter]['total_orders'] += 1
-        quarters[quarter]['total_revenue'] += order.get('total_value', 0)
+        data = quarters.setdefault(quarter, {
+            'quarter': quarter,
+            'total_orders': 0,
+            'total_revenue': 0,
+            'delivered_orders': 0,
+        })
+        data['total_orders'] += 1
+        data['total_revenue'] += order.get('total_value', 0)
         if order.get('status') == 'Delivered':
-            quarters[quarter]['delivered_orders'] += 1
+            data['delivered_orders'] += 1
 
-    # Calculate averages and fulfillment rate
     result = []
-    for q, data in quarters.items():
-        if data['total_orders'] > 0:
-            data['avg_order_value'] = round(data['total_revenue'] / data['total_orders'], 2)
-            data['fulfillment_rate'] = round((data['delivered_orders'] / data['total_orders']) * 100, 1)
+    for data in quarters.values():
+        data['avg_order_value'] = round(data['total_revenue'] / data['total_orders'], 2)
+        data['fulfillment_rate'] = round(data['delivered_orders'] / data['total_orders'] * 100, 1)
         result.append(data)
 
-    # Sort by quarter
     result.sort(key=lambda x: x['quarter'])
     return result
 
 @app.get("/api/reports/monthly-trends")
-def get_monthly_trends():
+def get_monthly_trends(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
     """Get month-over-month trends"""
     months = {}
 
-    for order in orders:
-        order_date = order.get('order_date', '')
-        if not order_date:
+    for order in filtered_orders(warehouse, category, status, month):
+        order_month = order.get('order_date', '')[:7]
+        if not order_month:
             continue
 
-        # Extract month (format: YYYY-MM-DD)
-        month = order_date[:7]  # Gets YYYY-MM
-
-        if month not in months:
-            months[month] = {
-                'month': month,
-                'order_count': 0,
-                'revenue': 0,
-                'delivered_count': 0
-            }
-
-        months[month]['order_count'] += 1
-        months[month]['revenue'] += order.get('total_value', 0)
+        data = months.setdefault(order_month, {
+            'month': order_month,
+            'order_count': 0,
+            'revenue': 0,
+            'delivered_count': 0
+        })
+        data['order_count'] += 1
+        data['revenue'] += order.get('total_value', 0)
         if order.get('status') == 'Delivered':
-            months[month]['delivered_count'] += 1
+            data['delivered_count'] += 1
 
-    # Convert to list and sort
-    result = list(months.values())
-    result.sort(key=lambda x: x['month'])
-    return result
+    return sorted(months.values(), key=lambda x: x['month'])
 
 if __name__ == "__main__":
     import uvicorn

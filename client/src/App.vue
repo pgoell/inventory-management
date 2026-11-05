@@ -25,6 +25,10 @@
           <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="10" height="12" rx="1" /><path d="M6 5h4M6 8h4M6 11h2" /></svg>
           {{ t('nav.orders') }}
         </router-link>
+        <router-link to="/backlog">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" /><path d="M8 4.5V8l2.5 1.5" /></svg>
+          {{ t('nav.backlog') }}
+        </router-link>
         <router-link to="/spending">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13h12M4 10v3M8 6v7M12 3v10" /></svg>
           {{ t('nav.finance') }}
@@ -40,7 +44,7 @@
         </router-link>
         <router-link to="/reports">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z" /><path d="M9 2v3h3M6 9h4M6 11.5h4" /></svg>
-          Reports
+          {{ t('nav.reports') }}
         </router-link>
       </nav>
 
@@ -111,16 +115,17 @@ export default {
       '/': ['groupOperations', 'overview'],
       '/inventory': ['groupOperations', 'inventory'],
       '/orders': ['groupOperations', 'orders'],
+      '/backlog': ['groupOperations', 'backlog'],
       '/spending': ['groupOperations', 'finance'],
       '/demand': ['groupPlanning', 'demandForecast'],
       '/restocking': ['groupPlanning', 'restocking'],
-      '/reports': ['groupPlanning', null]
+      '/reports': ['groupPlanning', 'reports']
     }
     const crumb = computed(() => {
       const [group, page] = crumbs[route.path] || [null, null]
       return {
         group: group ? t(`nav.${group}`) : '',
-        page: page ? t(`nav.${page}`) : route.path === '/reports' ? 'Reports' : ''
+        page: page ? t(`nav.${page}`) : ''
       }
     })
     const showProfileDetails = ref(false)

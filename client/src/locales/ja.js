@@ -9,6 +9,8 @@ export default {
     restocking: '補充発注',
     groupOperations: 'オペレーション',
     groupPlanning: '計画',
+    backlog: 'バックログ',
+    reports: 'レポート',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -378,6 +380,65 @@ export default {
     selectLanguage: '言語を選択'
   },
 
+  // Reports
+  backlog: {
+    title: 'バックログ管理',
+    description: '在庫不足を追跡して解消します',
+    loading: 'バックログを読み込み中...',
+    loadError: 'バックログの読み込みに失敗しました',
+    highPriority: '優先度：高',
+    mediumPriority: '優先度：中',
+    lowPriority: '優先度：低',
+    totalItems: 'バックログ総数',
+    items: 'バックログ項目',
+    empty: 'バックログはありません。すべての注文を履行できます！',
+    orderId: '注文ID',
+    sku: 'SKU',
+    itemName: '品目名',
+    quantityNeeded: '必要数量',
+    quantityAvailable: '在庫数量',
+    shortage: '不足',
+    daysDelayed: '遅延日数',
+    priority: '優先度',
+    unitsShort: '{count}個不足',
+    days: '{count}日'
+  },
+
+  reports: {
+    title: '業績レポート',
+    description: '四半期の業績指標と月次トレンドを表示します',
+    loading: 'レポートを読み込み中...',
+    loadError: 'レポートの読み込みに失敗しました',
+    empty: '選択したフィルターに一致する注文はありません',
+    notAvailable: 'なし',
+    none: '-',
+    quarterly: {
+      title: '四半期業績',
+      quarter: '四半期',
+      totalOrders: '総注文数',
+      totalRevenue: '総売上',
+      avgOrderValue: '平均注文額',
+      fulfillmentRate: '納品率'
+    },
+    trend: {
+      title: '月次売上推移'
+    },
+    mom: {
+      title: '前月比分析',
+      month: '月',
+      orders: '注文数',
+      revenue: '売上',
+      change: '増減',
+      growthRate: '成長率'
+    },
+    stats: {
+      totalRevenue: '総売上',
+      avgMonthlyRevenue: '月平均売上',
+      totalOrders: '総注文数',
+      bestQuarter: '最高業績の四半期'
+    }
+  },
+
   // Common
   common: {
     loading: '読み込み中...',
@@ -395,6 +456,10 @@ export default {
 
   // Product Names
   productNames: {
+    'Industrial Widget Type A': '産業用ウィジェット タイプA',
+    'Electric Motor 5HP': '電動モーター 5馬力',
+    'Oil Filter Cartridge': 'オイルフィルターカートリッジ',
+    'Pressure Relief Valve': '圧力逃し弁',
     'Single Layer PCB Assembly': '単層PCB組立',
     'Dual Layer PCB Assembly': '二層PCB組立',
     'Multi Layer PCB Assembly': '多層PCB組立',
