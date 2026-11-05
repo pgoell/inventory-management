@@ -21,7 +21,7 @@
       </svg>
     </button>
 
-    <div v-if="isDropdownOpen" class="dropdown-menu">
+    <div v-if="isDropdownOpen" class="popover">
       <div class="dropdown-header">
         <div class="avatar-large">
           {{ getInitials(currentUser.name) }}
@@ -32,10 +32,10 @@
         </div>
       </div>
 
-      <div class="dropdown-divider"></div>
+      <div class="menu-sep"></div>
 
       <button
-        class="dropdown-item"
+        class="menu-item"
         @mousedown.prevent="showProfileDetails"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -46,7 +46,7 @@
       </button>
 
       <button
-        class="dropdown-item"
+        class="menu-item"
         @mousedown.prevent="showTasks"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -57,10 +57,10 @@
         <span v-if="pendingTaskCount > 0" class="task-badge">{{ pendingTaskCount }}</span>
       </button>
 
-      <div class="dropdown-divider"></div>
+      <div class="menu-sep"></div>
 
       <button
-        class="dropdown-item logout"
+        class="menu-item logout"
         @mousedown.prevent="handleLogout"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -120,87 +120,81 @@ const handleLogout = () => {
   position: relative;
 }
 
+.popover {
+  min-width: 17rem;
+}
+
 .profile-button {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0.875rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  gap: var(--s-2);
+  height: 30px;
+  padding: 0 var(--s-2) 0 var(--s-1);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
+  transition: transform var(--dur-ui) var(--ease-out), border-color var(--dur-ui) ease;
 }
 
-.profile-button:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+.profile-button:active {
+  transform: scale(0.97);
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .profile-button:hover {
+    border-color: var(--ink);
+  }
+}
+
+.avatar,
+.avatar-large {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
   font-weight: 600;
-  font-size: 0.75rem;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.04em;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  font-size: var(--fs-label);
+}
+
+.avatar-large {
+  width: 40px;
+  height: 40px;
+  font-size: var(--fs-base);
 }
 
 .profile-name {
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
-  color: #0f172a;
+  color: var(--ink);
 }
 
 .chevron {
-  color: #64748b;
-  transition: transform 0.2s ease;
+  width: 12px;
+  height: 12px;
+  color: var(--ink-3);
+  transition: transform 200ms var(--ease-out);
 }
 
 .chevron-open {
   transform: rotate(180deg);
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  min-width: 280px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  overflow: hidden;
-}
-
 .dropdown-header {
-  padding: 1rem;
+  padding: var(--s-4);
   display: flex;
-  gap: 0.875rem;
+  gap: var(--s-3);
   align-items: center;
-  background: #f8fafc;
-}
-
-.avatar-large {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.025em;
-  flex-shrink: 0;
 }
 
 .user-info {
@@ -209,73 +203,42 @@ const handleLogout = () => {
 }
 
 .user-name {
+  font-family: var(--font-serif);
   font-weight: 600;
-  color: #0f172a;
-  font-size: 0.938rem;
-  margin-bottom: 0.25rem;
+  font-size: var(--fs-md);
+  line-height: 1.2;
 }
 
 .user-email {
-  font-size: 0.813rem;
-  color: #64748b;
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dropdown-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 0.5rem 0;
-}
-
-.dropdown-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #334155;
-}
-
-.dropdown-item:hover {
-  background: #f8fafc;
-}
-
-.dropdown-item svg {
-  color: #64748b;
+.menu-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-3);
   flex-shrink: 0;
 }
 
-.dropdown-item.logout {
-  color: #dc2626;
-}
-
-.dropdown-item.logout svg {
-  color: #dc2626;
-}
-
-.dropdown-item.logout:hover {
-  background: #fef2f2;
+.menu-item.logout,
+.menu-item.logout svg {
+  color: var(--bad);
 }
 
 .task-badge {
   margin-left: auto;
-  background: #2563eb;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
   min-width: 20px;
+  padding: 0 6px;
+  background: var(--signal);
+  color: var(--ink);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 600;
   text-align: center;
 }
 </style>

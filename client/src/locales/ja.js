@@ -6,6 +6,7 @@ export default {
     orders: '注文',
     finance: '財務',
     demandForecast: '需要予測',
+    restocking: '補充発注',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -112,6 +113,17 @@ export default {
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
     quantity: '数量',
+    submitted: {
+      title: '発注済み',
+      aside: '補充発注。フィルターの影響を受けません',
+      empty: '補充発注はまだありません。',
+      orderId: '発注番号',
+      submittedOn: '発注日',
+      lines: '明細',
+      totalCost: '合計費用',
+      leadTime: 'リードタイム（日）',
+      expectedDelivery: '納品予定日'
+    },
     table: {
       orderNumber: '注文番号',
       orderId: '注文ID',
@@ -188,7 +200,42 @@ export default {
     }
   },
 
-  // Filters
+  // 補充発注
+  restocking: {
+    title: '補充発注',
+    description: '予算を決めると、需要が増える品目の発注案を表示します。',
+    budget: '予算',
+    budgetInput: '予算額',
+    plannedSpend: '発注予定額',
+    lines: '明細数',
+    longestLead: '最長リードタイム',
+    days: '{count}日',
+    planTitle: '発注案',
+    planAside: '予算を動かすと再計算します。行のチェックや数量で調整できます。',
+    empty: 'この予算では補充できる品目がありません。',
+    noGaps: '予測が現在の需要を上回る品目はありません。',
+    table: {
+      include: '対象',
+      sku: 'SKU',
+      item: '品目',
+      trend: '傾向',
+      gap: '不足',
+      quantity: '発注数',
+      unitCost: '単価',
+      leadTime: 'リードタイム（日）',
+      lineTotal: '明細金額'
+    },
+    total: '合計',
+    budgetLeft: '予算残',
+    over: '予算超過',
+    placeOrder: '発注する',
+    placing: '発注中...',
+    placed: '発注 {id} を受け付けました。納品予定日は {date} です。',
+    viewOrders: '注文画面で見る',
+    failed: '発注できませんでした。'
+  },
+
+  // フィルター
   filters: {
     timePeriod: '期間',
     location: '場所',

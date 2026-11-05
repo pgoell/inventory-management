@@ -1,6 +1,6 @@
 <template>
   <div class="reports">
-    <div class="page-header">
+    <div class="page-head">
       <h2>Performance Reports</h2>
       <p>View quarterly performance metrics and monthly trends</p>
     </div>
@@ -8,29 +8,45 @@
     <div v-if="loading" class="loading">Loading reports...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
-      <!-- Quarterly Performance -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Quarterly Performance</h3>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Total Revenue (YTD)</span>
+          <span class="stat-value">${{ formatNumber(totalRevenue) }}</span>
         </div>
-        <div class="table-container">
-          <table class="reports-table">
+        <div class="stat">
+          <span class="stat-label">Avg Monthly Revenue</span>
+          <span class="stat-value">${{ formatNumber(avgMonthlyRevenue) }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Total Orders (YTD)</span>
+          <span class="stat-value">{{ totalOrders }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Best Performing Quarter</span>
+          <span class="stat-value">{{ bestQuarter }}</span>
+        </div>
+      </div>
+
+      <section class="section">
+        <h3 class="section-label">Quarterly Performance</h3>
+        <div class="ledger-wrap">
+          <table class="ledger">
             <thead>
               <tr>
                 <th>Quarter</th>
-                <th>Total Orders</th>
-                <th>Total Revenue</th>
-                <th>Avg Order Value</th>
-                <th>Fulfillment Rate</th>
+                <th class="num">Total Orders</th>
+                <th class="num">Total Revenue</th>
+                <th class="num">Avg Order Value</th>
+                <th class="num">Fulfillment Rate</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(q, index) in quarterlyData" :key="index">
+              <tr v-for="q in quarterlyData" :key="q.quarter">
                 <td><strong>{{ q.quarter }}</strong></td>
-                <td>{{ q.total_orders }}</td>
-                <td>${{ formatNumber(q.total_revenue) }}</td>
-                <td>${{ formatNumber(q.avg_order_value) }}</td>
-                <td>
+                <td class="num">{{ q.total_orders }}</td>
+                <td class="num">${{ formatNumber(q.total_revenue) }}</td>
+                <td class="num">${{ formatNumber(q.avg_order_value) }}</td>
+                <td class="num">
                   <span :class="getFulfillmentClass(q.fulfillment_rate)">
                     {{ q.fulfillment_rate }}%
                   </span>
@@ -39,87 +55,60 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      <!-- Monthly Trends Chart -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Monthly Revenue Trend</h3>
-        </div>
-        <div class="chart-container">
-          <div class="bar-chart">
-            <div v-for="(month, index) in monthlyData" :key="index" class="bar-wrapper">
-              <div class="bar-container">
-                <div
-                  class="bar"
-                  :style="{ height: getBarHeight(month.revenue) + 'px' }"
-                  :title="'$' + formatNumber(month.revenue)"
-                ></div>
-              </div>
-              <div class="bar-label">{{ formatMonth(month.month) }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="section">
+        <h3 class="section-label">Monthly Revenue Trend</h3>
+        <svg :viewBox="`0 0 ${chart.W} ${chart.H}`" class="chart" role="img" aria-label="Monthly Revenue Trend">
+          <g v-for="tick in chart.ticks" :key="tick.key">
+            <line :x1="chart.L" :x2="chart.W - chart.R" :y1="tick.y" :y2="tick.y" class="grid" />
+            <text :x="chart.L - 8" :y="tick.y + 4" text-anchor="end" class="axis-text">{{ tick.label }}</text>
+          </g>
+          <g v-for="bar in chart.bars" :key="bar.month" class="bar-group">
+            <rect :x="bar.x" :y="bar.y" width="24" :height="bar.h" rx="2" class="mark">
+              <title>{{ bar.title }}</title>
+            </rect>
+            <text :x="bar.cx" :y="chart.H - 8" text-anchor="middle" class="axis-text">{{ bar.label }}</text>
+          </g>
+          <line :x1="chart.L" :x2="chart.W - chart.R" :y1="chart.T + chart.plotH" :y2="chart.T + chart.plotH" class="baseline" />
+        </svg>
+      </section>
 
-      <!-- Month-over-Month Comparison -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Month-over-Month Analysis</h3>
-        </div>
-        <div class="table-container">
-          <table class="reports-table">
+      <section class="section">
+        <h3 class="section-label">Month-over-Month Analysis</h3>
+        <div class="ledger-wrap">
+          <table class="ledger">
             <thead>
               <tr>
                 <th>Month</th>
-                <th>Orders</th>
-                <th>Revenue</th>
-                <th>Change</th>
-                <th>Growth Rate</th>
+                <th class="num">Orders</th>
+                <th class="num">Revenue</th>
+                <th class="num">Change</th>
+                <th class="num">Growth Rate</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(month, index) in monthlyData" :key="index">
+              <tr v-for="(month, index) in monthlyData" :key="month.month">
                 <td><strong>{{ formatMonth(month.month) }}</strong></td>
-                <td>{{ month.order_count }}</td>
-                <td>${{ formatNumber(month.revenue) }}</td>
-                <td>
+                <td class="num">{{ month.order_count }}</td>
+                <td class="num">${{ formatNumber(month.revenue) }}</td>
+                <td class="num">
                   <span v-if="index > 0" :class="getChangeClass(month.revenue, monthlyData[index - 1].revenue)">
                     {{ getChangeValue(month.revenue, monthlyData[index - 1].revenue) }}
                   </span>
-                  <span v-else>-</span>
+                  <span v-else class="muted">-</span>
                 </td>
-                <td>
+                <td class="num">
                   <span v-if="index > 0" :class="getChangeClass(month.revenue, monthlyData[index - 1].revenue)">
                     {{ getGrowthRate(month.revenue, monthlyData[index - 1].revenue) }}
                   </span>
-                  <span v-else>-</span>
+                  <span v-else class="muted">-</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
-
-      <!-- Summary Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Revenue (YTD)</div>
-          <div class="stat-value">${{ formatNumber(totalRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Avg Monthly Revenue</div>
-          <div class="stat-value">${{ formatNumber(avgMonthlyRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Orders (YTD)</div>
-          <div class="stat-value">{{ totalOrders }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Best Performing Quarter</div>
-          <div class="stat-value">{{ bestQuarter }}</div>
-        </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -145,6 +134,49 @@ export default {
   mounted() {
     console.log('Reports component mounted')
     this.loadData()
+  },
+  computed: {
+    chart() {
+      var W = 960, H = 300, L = 56, R = 8, T = 8, B = 28
+      var plotW = W - L - R
+      var plotH = H - T - B
+      var n = this.monthlyData.length || 1
+      var slot = plotW / n
+      var peak = 0
+      for (var i = 0; i < this.monthlyData.length; i++) {
+        if (this.monthlyData[i].revenue > peak) peak = this.monthlyData[i].revenue
+      }
+      // round the axis top up to 1, 2, 2.5, 5 or 10 times a power of ten
+      var mag = Math.pow(10, Math.floor(Math.log10(peak || 1)))
+      var steps = [1, 2, 2.5, 5, 10]
+      var max = mag
+      for (var s = 0; s < steps.length; s++) {
+        max = steps[s] * mag
+        if (max >= peak) break
+      }
+      var ticks = []
+      for (var k = 0; k <= 4; k++) {
+        var v = (max * k) / 4
+        ticks.push({
+          key: k,
+          y: T + plotH - (plotH * k) / 4,
+          label: v === 0 ? '$0' : v >= 1000 ? '$' + v / 1000 + 'K' : '$' + v
+        })
+      }
+      var bars = this.monthlyData.map((m, idx) => {
+        var h = (m.revenue / max) * plotH
+        return {
+          month: m.month,
+          x: L + slot * idx + slot / 2 - 12,
+          y: T + plotH - h,
+          h: h,
+          label: this.formatMonth(m.month),
+          cx: L + slot * idx + slot / 2,
+          title: '$' + this.formatNumber(m.revenue)
+        }
+      })
+      return { W, H, L, R, T, plotH, ticks, bars }
+    }
   },
   methods: {
     async loadData() {
@@ -253,31 +285,13 @@ export default {
       return monthNames[monthIndex] + ' ' + year
     },
 
-    getBarHeight(revenue) {
-      console.log('Calculating bar height for revenue:', revenue)
-      // Calculate bar height (max height 200px)
-      var maxRevenue = 0
-      for (var i = 0; i < this.monthlyData.length; i++) {
-        if (this.monthlyData[i].revenue > maxRevenue) {
-          maxRevenue = this.monthlyData[i].revenue
-        }
-      }
-
-      if (maxRevenue === 0) {
-        return 0
-      }
-
-      var height = (revenue / maxRevenue) * 200
-      return height
-    },
-
     getFulfillmentClass(rate) {
       if (rate >= 90) {
-        return 'badge success'
+        return 'tag tag--ok'
       } else if (rate >= 75) {
-        return 'badge warning'
+        return 'tag tag--warn'
       } else {
-        return 'badge danger'
+        return 'tag tag--bad'
       }
     },
 
@@ -295,9 +309,9 @@ export default {
     getChangeClass(current, previous) {
       var change = current - previous
       if (change > 0) {
-        return 'positive-change'
+        return 'up'
       } else if (change < 0) {
-        return 'negative-change'
+        return 'down'
       } else {
         return ''
       }
@@ -318,172 +332,43 @@ export default {
 </script>
 
 <style scoped>
-.reports {
-  padding: 0;
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  margin-bottom: 1.5rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0;
-}
-
-.reports-table {
+.chart {
+  display: block;
   width: 100%;
-  border-collapse: collapse;
+  height: auto;
 }
 
-.reports-table th {
-  background: #f8fafc;
-  padding: 0.75rem;
-  text-align: left;
-  font-weight: 600;
-  color: #64748b;
-  border-bottom: 2px solid #e2e8f0;
+.grid {
+  stroke: var(--rule);
+  stroke-width: 1;
 }
 
-.reports-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+.baseline {
+  stroke: var(--ink);
+  stroke-width: 1;
 }
 
-.reports-table tr:hover {
-  background: #f8fafc;
+.axis-text {
+  fill: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
 
-.chart-container {
-  padding: 2rem 1rem;
-  min-height: 300px;
+.mark {
+  fill: var(--chart-1);
 }
 
-.bar-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 250px;
-  gap: 0.5rem;
+@media (hover: hover) and (pointer: fine) {
+  .bar-group:hover .mark {
+    fill: var(--chart-2);
+  }
 }
 
-.bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  max-width: 80px;
+.up {
+  color: var(--ok);
 }
 
-.bar-container {
-  height: 200px;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.bar {
-  width: 100%;
-  background: linear-gradient(to top, #3b82f6, #60a5fa);
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-
-.bar:hover {
-  background: linear-gradient(to top, #2563eb, #3b82f6);
-}
-
-.bar-label {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #64748b;
-  text-align: center;
-  transform: rotate(-45deg);
-  white-space: nowrap;
-  margin-top: 1.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #3b82f6;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.badge.success {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.warning {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.badge.danger {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.positive-change {
-  color: #16a34a;
-  font-weight: 600;
-}
-
-.negative-change {
-  color: #dc2626;
-  font-weight: 600;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
-}
-
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
+.down {
+  color: var(--bad);
 }
 </style>

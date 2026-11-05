@@ -1,0 +1,11 @@
+{
+  "extraKnownMarketplaces": {
+    "pgoell-claude-tools": {
+      "source": { "source": "github", "repo": "pgoell/pgoell-claude-tools" }
+    }
+  },
+  "enabledPlugins": {
+    "taste-skill@pgoell-claude-tools": true,
+    "emil@pgoell-claude-tools": true
+  }
+}

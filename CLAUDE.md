@@ -8,7 +8,7 @@ Factory inventory dashboard, forked from a Claude Code workshop demo. Runs at in
 
 ## Layout
 
-- `server/`: FastAPI on port 8001. Every route lives in `main.py`; `mock_data.py` loads `server/data/*.json` into memory at startup. No database, nothing persists.
+- `server/`: FastAPI on port 8001. Every route lives in `main.py`; `mock_data.py` loads `server/data/*.json` into memory at startup; nothing there persists. Only submitted restocking orders persist, in SQLite (`restock_db.py`, file at `RESTOCK_DB_PATH`, `/data/restock.db` in the image, a volume in prod; tests point it at a temp dir in `conftest.py`).
 - `client/`: Vue 3 and Vite on port 3000. Views in `src/views/`, every API call in `src/api.js`, shared state in `src/composables/` (filters, auth, i18n).
 - `tests/backend/`: pytest with FastAPI's `TestClient`; `conftest.py` puts `server/` on the path.
 
@@ -28,7 +28,8 @@ There is no linter and no frontend test suite.
 ## How it fits together
 
 - Four filters (time period, warehouse, category, order status) live in `useFilters.js` and go to the API as query params. The value `all` means no filter, and the client leaves it out. The server filters lists in Python (`apply_filters`, `filter_by_month` in `main.py`); `month` takes `2025-01` or a quarter such as `Q1-2025`.
-- Inventory has no time dimension, so `/api/inventory` ignores `month`. `/api/demand`, `/api/backlog`, `/api/spending/*` and `/api/reports/*` take no filters.
+- Inventory has no time dimension, so `/api/inventory` ignores `month`. `/api/demand`, `/api/backlog`, `/api/restock-orders`, `/api/spending/*` and `/api/reports/*` take no filters, and the client hides the filter bar on `/restocking`.
+- Restocking: the client turns the budget into recommendations from `/api/demand` (gap = forecasted minus current demand, increasing trend first, then biggest gap). The server prices each line again from the forecasts' `unit_cost` and `lead_time_days` when an order is placed.
 - A change to the shape of a JSON file in `server/data/` needs the matching Pydantic model in `main.py` changed too.
 - UI text goes through `t()` from `useI18n.js`, with a key in both `src/locales/en.js` and `src/locales/ja.js`. `Reports.vue` and `Backlog.vue` still hardcode English.
 - Server dependencies live twice: `pyproject.toml` for uv, `requirements.txt` for the Docker image. Change both.
@@ -41,5 +42,6 @@ A push to `main` deploys to prod; a manual run of the `Deploy` workflow sends an
 
 - One change, one branch, one pull request into `main`.
 - Delegate new or heavily changed `.vue` files to the `vue-expert` subagent. Use the `backend-api-test` skill for tests in `tests/backend/`.
-- UI design: slate and gray (`#0f172a`, `#64748b`, `#e2e8f0`), green/blue/yellow/red for status, hand-written SVG charts, CSS Grid layouts, no emojis.
+- UI design: "shop-floor ledger". Paper, ink and one safety-orange signal colour; serif headings, tabular mono figures, hairline rules instead of cards and shadows. Tokens and shared classes live in `client/src/styles/ledger.css`; scoped styles use `var(--token)`, never hex. Hand-written SVG charts, CSS Grid layouts, no emojis. Design skills: `emil:emil-design-eng` and `taste-skill:taste-skill`, switched on in `.claude/settings.json`.
 - `v-for` keys use a real id (`sku`, `month`), never the index.
+- Test UI changes in the browser with the Chrome DevTools MCP tools (`mcp__chrome-devtools__*`): start both servers, open your own page with `new_page` on `http://localhost:3000`, check each view you touched with `take_snapshot` and `list_console_messages`, then close the page. Pass this rule on to any subagent that tests UI.
