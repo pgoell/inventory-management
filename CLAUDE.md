@@ -1,76 +1,45 @@
 # CLAUDE.md
 
-Factory Inventory Management System Demo with GitHub integration - Full-stack application with Vue 3 frontend, Python FastAPI backend, and in-memory mock data (no database).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> ⚠️ **This repository and any fork you create are PUBLIC.** Do not commit credentials, internal hostnames, or private registry URLs. `client/.npmrc` pins the public npm registry and `client/package-lock.json` is gitignored to prevent locally-configured registries from leaking into commits — leave both in place.
+Factory inventory dashboard, forked from a Claude Code workshop demo. Runs at inventory-management.pgoell.com.
 
-## Critical Tool Usage Rules
+> **This repo is public.** Never commit credentials, internal hostnames or private registry URLs. `client/.npmrc` pins the public npm registry and `client/package-lock.json` stays gitignored so a local registry never leaks into a commit. Leave both in place.
 
-### Subagents
-Use the Task tool with these specialized subagents for appropriate tasks:
+## Layout
 
-- **vue-expert**: Use for Vue 3 frontend features, UI components, styling, and client-side functionality
-  - Examples: Creating components, fixing reactivity issues, performance optimization, complex state management
-  - **MANDATORY RULE: ANY time you need to create or significantly modify a .vue file, you MUST delegate to vue-expert**
-- **code-reviewer**: Use after writing significant code to review quality and best practices
-- **Explore**: Use for understanding codebase structure, searching for patterns, or answering questions about how components work
-- **general-purpose**: Use for complex multi-step tasks or when other agents don't fit
+- `server/`: FastAPI on port 8001. Every route lives in `main.py`; `mock_data.py` loads `server/data/*.json` into memory at startup. No database, nothing persists.
+- `client/`: Vue 3 and Vite on port 3000. Views in `src/views/`, every API call in `src/api.js`, shared state in `src/composables/` (filters, auth, i18n).
+- `tests/backend/`: pytest with FastAPI's `TestClient`; `conftest.py` puts `server/` on the path.
 
-### Skills
-- **backend-api-test** skill: Use when writing or modifying tests in `tests/backend` directory with pytest and FastAPI TestClient
+## Commands
 
-### MCP Tools
-- **ALWAYS use GitHub MCP tools** (`mcp__github__*`) for ALL GitHub operations
-  - Exception: Local branches only - use `git checkout -b` instead of `mcp__github__create_branch`
-- **ALWAYS use Playwright MCP tools** (`mcp__playwright__*`) for browser testing
-  - Test against: `http://localhost:3000` (frontend), `http://localhost:8001` (API)
-
-## Stack
-- **Frontend**: Vue 3 + Composition API + Vite (port 3000)
-- **Backend**: Python FastAPI (port 8001)
-- **Data**: JSON files in `server/data/` loaded via `server/mock_data.py`
-
-## Quick Start
-
-```bash
-# Backend
-cd server
-uv run python main.py
-
-# Frontend
-cd client
-npm install && npm run dev
+```sh
+./scripts/start.sh                             # backend and frontend; ./scripts/stop.sh ends both
+cd server && uv run python main.py             # backend alone
+cd client && npm install && npm run dev        # frontend alone
+cd tests && uv run --project ../server pytest  # all backend tests
+cd tests && uv run --project ../server pytest backend/test_inventory.py::TestInventoryEndpoints::test_get_all_inventory
+cd client && npm run build                     # client/dist/
 ```
 
-## Key Patterns
+There is no linter and no frontend test suite.
 
-**Filter System**: 4 filters (Time Period, Warehouse, Category, Order Status) apply to all data via query params
-**Data Flow**: Vue filters → `client/src/api.js` → FastAPI → In-memory filtering → Pydantic validation → Computed properties
-**Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties
+## How it fits together
 
-## API Endpoints
-- `GET /api/inventory` - Filters: warehouse, category
-- `GET /api/orders` - Filters: warehouse, category, status, month
-- `GET /api/dashboard/summary` - All filters
-- `GET /api/demand`, `/api/backlog` - No filters
-- `GET /api/spending/*` - Summary, monthly, categories, transactions
+- Four filters (time period, warehouse, category, order status) live in `useFilters.js` and go to the API as query params. The value `all` means no filter, and the client leaves it out. The server filters lists in Python (`apply_filters`, `filter_by_month` in `main.py`); `month` takes `2025-01` or a quarter such as `Q1-2025`.
+- Inventory has no time dimension, so `/api/inventory` ignores `month`. `/api/demand`, `/api/backlog`, `/api/spending/*` and `/api/reports/*` take no filters.
+- A change to the shape of a JSON file in `server/data/` needs the matching Pydantic model in `main.py` changed too.
+- UI text goes through `t()` from `useI18n.js`, with a key in both `src/locales/en.js` and `src/locales/ja.js`. `Reports.vue` and `Backlog.vue` still hardcode English.
+- Server dependencies live twice: `pyproject.toml` for uv, `requirements.txt` for the Docker image. Change both.
 
-## Common Issues
-1. Use unique keys in v-for (not `index`) - use `sku`, `month`, etc.
-2. Validate dates before `.getMonth()` calls
-3. Update Pydantic models when changing JSON data structure
-4. Inventory filters don't support month (no time dimension)
-5. Revenue goals: $800K/month single, $9.6M YTD all months
+## Deploy
 
-## File Locations
-- Views: `client/src/views/*.vue`
-- API Client: `client/src/api.js`
-- Backend: `server/main.py`, `server/mock_data.py`
-- Data: `server/data/*.json`
-- Styles: `client/src/App.vue`
+A push to `main` deploys to prod; a manual run of the `Deploy` workflow sends any ref to dev. `.github/workflows/deploy.yml` builds both images on GitHub, pushes them to GHCR and hands the tag to a script on the VPS. In the image, Caddy serves the built client and the client calls `/api` on the same origin (`VITE_API_BASE_URL=/api`); locally it calls `http://localhost:8001/api`. Every `uses:` pins a full commit SHA with the version as a comment.
 
-## Design System
-- Colors: Slate/gray (#0f172a, #64748b, #e2e8f0)
-- Status: green/blue/yellow/red
-- Charts: Custom SVG, CSS Grid for layouts
-- No emojis in UI
+## Conventions
+
+- One change, one branch, one pull request into `main`.
+- Delegate new or heavily changed `.vue` files to the `vue-expert` subagent. Use the `backend-api-test` skill for tests in `tests/backend/`.
+- UI design: slate and gray (`#0f172a`, `#64748b`, `#e2e8f0`), green/blue/yellow/red for status, hand-written SVG charts, CSS Grid layouts, no emojis.
+- `v-for` keys use a real id (`sku`, `month`), never the index.
