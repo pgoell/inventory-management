@@ -48,7 +48,7 @@
         <h3 class="section-label">{{ t('dashboard.summary.title') }}</h3>
         <div class="summary-grid">
           <!-- Order health -->
-          <div class="panel">
+          <div class="summary-block">
             <h4 class="label panel-title">{{ t('dashboard.orderHealth.title') }}</h4>
 
             <div class="status-total">
@@ -103,7 +103,7 @@
           </div>
 
           <!-- Inventory by category -->
-          <div class="panel">
+          <div class="summary-block">
             <h4 class="label panel-title">{{ t('dashboard.inventoryValue.title') }}</h4>
             <ul v-if="categoryData.length > 0" class="bars">
               <li v-for="cat in categoryData" :key="cat.name" class="bar-row">

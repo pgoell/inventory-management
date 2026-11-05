@@ -97,27 +97,25 @@ const selectLanguage = (locale) => {
   display: flex;
   align-items: center;
   gap: var(--s-2);
+  width: 100%;
   height: 30px;
   padding: 0 var(--s-2);
   background: none;
   border: 1px solid transparent;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: var(--ink-2);
-  transition: transform var(--dur-ui) var(--ease-out), border-color var(--dur-ui) ease,
-    color var(--dur-ui) ease;
+  font-size: var(--fs-base);
+  color: var(--ink);
+  transition: transform var(--dur-press) var(--ease-out), background-color 120ms ease;
 }
 
 .language-button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .language-button:hover {
-    border-color: var(--ink);
-    color: var(--ink);
+    background: color-mix(in srgb, var(--rule) 55%, transparent);
   }
 }
 
@@ -127,18 +125,34 @@ const selectLanguage = (locale) => {
 }
 
 .globe-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+  color: var(--ink-3);
+}
+
+.language-label {
+  flex: 1;
+  text-align: left;
 }
 
 .chevron {
   width: 12px;
   height: 12px;
+  color: var(--ink-3);
   transition: transform 200ms var(--ease-out);
 }
 
 .chevron-open {
   transform: rotate(180deg);
+}
+
+/* opens upward from the sidebar foot */
+.popover {
+  top: auto;
+  right: 0;
+  bottom: calc(100% + var(--s-1));
+  left: 0;
+  transform-origin: bottom left;
 }
 
 .language-name {
@@ -150,5 +164,21 @@ const selectLanguage = (locale) => {
   height: 14px;
   color: var(--signal-text);
   flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .language-button {
+    width: auto;
+  }
+  .language-label {
+    flex: none;
+  }
+  .popover {
+    top: calc(100% + var(--s-1));
+    right: auto;
+    bottom: auto;
+    min-width: 9rem;
+    transform-origin: top left;
+  }
 }
 </style>

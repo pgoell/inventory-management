@@ -120,30 +120,37 @@ const handleLogout = () => {
   position: relative;
 }
 
+/* opens upward from the sidebar foot */
 .popover {
-  min-width: 17rem;
+  top: auto;
+  right: 0;
+  bottom: calc(100% + var(--s-1));
+  left: 0;
+  min-width: 15rem;
+  transform-origin: bottom left;
 }
 
 .profile-button {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
-  height: 30px;
-  padding: 0 var(--s-2) 0 var(--s-1);
+  gap: 10px;
+  width: 100%;
+  padding: 4px var(--s-2);
   background: none;
   border: 1px solid transparent;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: transform var(--dur-ui) var(--ease-out), border-color var(--dur-ui) ease;
+  text-align: left;
+  transition: transform var(--dur-press) var(--ease-out), background-color 120ms ease;
 }
 
 .profile-button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .profile-button:hover {
-    border-color: var(--ink);
+    background: color-mix(in srgb, var(--rule) 55%, transparent);
   }
 }
 
@@ -153,35 +160,38 @@ const handleLogout = () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--ink);
-  color: var(--paper);
-  border-radius: var(--radius);
-  font-family: var(--font-mono);
+  background: var(--signal-bg);
+  color: var(--signal-text);
+  border-radius: 50%;
   font-weight: 600;
-  letter-spacing: 0.04em;
 }
 
 .avatar {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   font-size: var(--fs-label);
 }
 
 .avatar-large {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   font-size: var(--fs-base);
 }
 
 .profile-name {
-  font-size: var(--fs-sm);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-base);
   font-weight: 500;
-  color: var(--ink);
 }
 
 .chevron {
   width: 12px;
   height: 12px;
+  flex-shrink: 0;
   color: var(--ink-3);
   transition: transform 200ms var(--ease-out);
 }
@@ -191,7 +201,7 @@ const handleLogout = () => {
 }
 
 .dropdown-header {
-  padding: var(--s-4);
+  padding: var(--s-3);
   display: flex;
   gap: var(--s-3);
   align-items: center;
@@ -203,9 +213,8 @@ const handleLogout = () => {
 }
 
 .user-name {
-  font-family: var(--font-serif);
   font-weight: 600;
-  font-size: var(--fs-md);
+  font-size: var(--fs-base);
   line-height: 1.2;
 }
 
@@ -218,8 +227,8 @@ const handleLogout = () => {
 }
 
 .menu-item svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   color: var(--ink-3);
   flex-shrink: 0;
 }
@@ -234,11 +243,28 @@ const handleLogout = () => {
   min-width: 20px;
   padding: 0 6px;
   background: var(--signal);
-  color: var(--ink);
-  border-radius: var(--radius);
+  color: #fff;
+  border-radius: 10px;
   font-family: var(--font-mono);
   font-size: var(--fs-label);
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 18px;
   text-align: center;
+}
+
+@media (max-width: 900px) {
+  .profile-button {
+    width: auto;
+  }
+  .profile-name {
+    flex: none;
+  }
+  .popover {
+    top: calc(100% + var(--s-1));
+    right: 0;
+    bottom: auto;
+    left: auto;
+    transform-origin: top right;
+  }
 }
 </style>

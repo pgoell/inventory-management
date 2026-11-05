@@ -146,9 +146,9 @@ export default {
       for (var i = 0; i < this.monthlyData.length; i++) {
         if (this.monthlyData[i].revenue > peak) peak = this.monthlyData[i].revenue
       }
-      // round the axis top up to 1, 2, 2.5, 5 or 10 times a power of ten
+      // round the axis top up to 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8 or 10 times a power of ten
       var mag = Math.pow(10, Math.floor(Math.log10(peak || 1)))
-      var steps = [1, 2, 2.5, 5, 10]
+      var steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
       var max = mag
       for (var s = 0; s < steps.length; s++) {
         max = steps[s] * mag

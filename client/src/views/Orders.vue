@@ -236,7 +236,7 @@ export default {
 
 .items-summary {
   cursor: pointer;
-  color: var(--signal-text);
+  color: var(--signal);
   list-style: none;
   user-select: none;
   display: inline-block;
@@ -251,11 +251,11 @@ export default {
   display: inline-block;
   width: 0;
   height: 0;
-  margin-right: var(--s-2);
+  margin-right: 8px;
   border-left: 5px solid currentColor;
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;
-  transition: transform var(--dur-ui) var(--ease-out);
+  transition: transform 160ms ease-out;
 }
 
 .items-details[open] .items-summary::before {
@@ -272,22 +272,23 @@ export default {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: var(--s-1);
+  margin-top: 4px;
   background: var(--paper-raised);
-  border: var(--line);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
-  padding: var(--s-2) var(--s-3);
+  padding: 8px 12px;
   z-index: 10;
   min-width: 18rem;
   max-width: 25rem;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .item-entry {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--s-2) 0;
-  border-bottom: var(--hair);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
 }
 
 .item-entry:last-child {
@@ -295,12 +296,12 @@ export default {
 }
 
 .item-name {
-  font-size: var(--fs-table);
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 .item-meta {
-  font-size: var(--fs-sm);
+  font-size: 12px;
   color: var(--ink-3);
 }
 </style>

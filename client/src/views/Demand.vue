@@ -32,7 +32,7 @@
           <ul class="trend-list">
             <li v-for="item in getForecastsByTrend('increasing').slice(0, 5)" :key="item.id" class="trend-item">
               <span class="item-name">{{ item.item_name }}</span>
-              <span class="num trend-increasing">+{{ getChangePercent(item) }}%</span>
+              <span class="num trend-increasing">{{ getChangePercent(item) }}%</span>
             </li>
           </ul>
           <div v-if="getForecastsByTrend('increasing').length > 5" class="more-items muted">

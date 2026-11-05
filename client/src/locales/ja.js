@@ -7,6 +7,8 @@ export default {
     finance: '財務',
     demandForecast: '需要予測',
     restocking: '補充発注',
+    groupOperations: 'オペレーション',
+    groupPlanning: '計画',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -232,7 +234,25 @@ export default {
     placing: '発注中...',
     placed: '発注 {id} を受け付けました。納品予定日は {date} です。',
     viewOrders: '注文画面で見る',
-    failed: '発注できませんでした。'
+    failed: '発注できませんでした。',
+    lineCount: '{total}件中{count}件',
+    hint: '予算を動かすと、数量は提案値に戻ります。',
+    inspector: '発注の詳細',
+    summary: '概要',
+    budgetUsed: '予算消化率',
+    submitted: '発注済み',
+    orderNo: '発注 {id}',
+    inTransit: '輸送中',
+    leadTime: 'リードタイム',
+    expected: '納品予定',
+    chart: {
+      title: 'SKU別の需要',
+      unit: '単位',
+      current: '現在',
+      forecast: '予測',
+      label: 'SKU別の現在需要と予測需要',
+      tooltip: '{sku}: 現在 {current}、予測 {forecast}'
+    }
   },
 
   // フィルター

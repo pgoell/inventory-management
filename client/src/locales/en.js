@@ -7,6 +7,8 @@ export default {
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
     restocking: 'Restocking',
+    groupOperations: 'Operations',
+    groupPlanning: 'Planning',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -232,7 +234,25 @@ export default {
     placing: 'Placing...',
     placed: 'Order {id} placed. Expected delivery {date}.',
     viewOrders: 'View in Orders',
-    failed: 'Could not place the order.'
+    failed: 'Could not place the order.',
+    lineCount: '{count} of {total} lines',
+    hint: 'Moving the budget resets quantities to the suggestion.',
+    inspector: 'Order details',
+    summary: 'Summary',
+    budgetUsed: 'Budget used',
+    submitted: 'Submitted orders',
+    orderNo: 'Order {id}',
+    inTransit: 'In transit',
+    leadTime: 'Lead time',
+    expected: 'Expected',
+    chart: {
+      title: 'Demand by SKU',
+      unit: 'units',
+      current: 'Current',
+      forecast: 'Forecast',
+      label: 'Current and forecast demand per SKU',
+      tooltip: '{sku}: {current} now, {forecast} forecast'
+    }
   },
 
   // Filters

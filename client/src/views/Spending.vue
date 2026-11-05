@@ -446,8 +446,15 @@ export default {
       return out
     }
 
+    // Top of a 4-tick axis on a round step (1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of ten)
+    const niceMax = (peak) => {
+      const raw = Math.max(peak, 1) / 4
+      const mag = 10 ** Math.floor(Math.log10(raw))
+      return [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(m => m * mag).find(s => s >= raw) * 4
+    }
+
     const revenueChart = computed(() => {
-      const max = Math.max(maxRevenueValue.value, 1) * 1000
+      const max = niceMax(maxRevenueValue.value * 1000)
       const n = monthlyRevenue.value.length || 1
       const slot = PLOT_W / n
       const sym = currencySymbol.value
@@ -470,7 +477,7 @@ export default {
         }
       })
       return {
-        ticks: makeTicks(max, 4, (v) => (v === 0 ? `${sym}0` : `${sym}${Math.round(v / 1000)}K`)),
+        ticks: makeTicks(max, 4, (v) => (v === 0 ? `${sym}0` : `${sym}${Math.round(v / 1000).toLocaleString()}K`)),
         bars
       }
     })
@@ -480,7 +487,7 @@ export default {
     const costChart = computed(() => {
       const sym = currencySymbol.value
       const peak = Math.max(0, ...monthlySpending.value.map(m => COST_KEYS.reduce((s, k) => s + m[k], 0)))
-      const max = Math.max(25000, Math.ceil(peak / 5000) * 5000)
+      const max = niceMax(peak)
       const n = monthlySpending.value.length || 1
       const slot = PLOT_W / n
       const bars = monthlySpending.value.map((m, i) => {
@@ -501,7 +508,7 @@ export default {
         return { month: m.month, label: translateMonth(m.month), x: cx - STACK_BAR / 2, segments, data: m }
       })
       return {
-        ticks: makeTicks(max, max / 5000, (v) => (v === 0 ? `${sym}0` : `${sym}${v / 1000}K`)),
+        ticks: makeTicks(max, 4, (v) => (v === 0 ? `${sym}0` : `${sym}${Math.round(v / 1000).toLocaleString()}K`)),
         bars
       }
     })

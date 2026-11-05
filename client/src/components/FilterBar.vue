@@ -102,72 +102,44 @@ export default {
 
 <style scoped>
 .filters-bar {
-  position: sticky;
-  top: var(--nav-h);
-  z-index: 90;
-  height: var(--filter-h);
-  background: var(--paper);
-  border-bottom: var(--hair);
+  margin-left: auto;
 }
 
 .filters-container {
-  max-width: var(--page-max);
-  height: 100%;
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-  display: flex;
-  align-items: center;
-  gap: var(--s-4);
-}
-
-.filters-grid {
-  display: flex;
-  align-items: center;
-  gap: var(--s-5);
-  flex: 1;
-  min-width: 0;
-}
-
-.filter-group {
   display: flex;
   align-items: center;
   gap: var(--s-2);
 }
 
+.filters-grid {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .filter-group label {
-  font-size: var(--fs-label);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-sm);
   color: var(--ink-3);
   white-space: nowrap;
 }
 
 .filter-group .select {
   width: auto;
-  min-width: 9rem;
-  min-height: 30px;
-  background-color: transparent;
+  min-height: 26px;
+  height: 26px;
+  font-size: var(--fs-sm);
 }
 
 .btn--icon {
-  height: 30px;
-  width: 30px;
   flex-shrink: 0;
-}
-
-@media (max-width: 900px) {
-  .filters-bar {
-    position: static;
-    height: auto;
-    padding: var(--s-2) 0;
-  }
-  .filters-container {
-    align-items: flex-start;
-  }
-  .filters-grid {
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-4);
-  }
+  width: 26px;
+  height: 26px;
 }
 </style>

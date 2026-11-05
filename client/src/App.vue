@@ -1,45 +1,69 @@
 <template>
   <div class="app">
-    <header class="top-nav">
-      <div class="nav-container">
-        <div class="logo">
-          <h1>{{ t('nav.companyName') }}</h1>
-          <span class="subtitle">{{ t('nav.subtitle') }}</span>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 2h4v4H2zM8 2h4v4H8zM2 8h4v4H2z" fill="#fff" /><path d="M8 8h4v4H8z" fill="#6f93ff" /></svg>
         </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }">
-            {{ t('nav.restocking') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
-          </router-link>
-        </nav>
+        <div>
+          <div class="brand-name">{{ t('nav.companyName') }}</div>
+          <div class="brand-sub">{{ t('nav.subtitle') }}</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Main">
+        <div class="nav-label">{{ t('nav.groupOperations') }}</div>
+        <router-link to="/">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1" /><rect x="9" y="2" width="5" height="5" rx="1" /><rect x="2" y="9" width="5" height="5" rx="1" /><rect x="9" y="9" width="5" height="5" rx="1" /></svg>
+          {{ t('nav.overview') }}
+        </router-link>
+        <router-link to="/inventory">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5l6-3 6 3v6l-6 3-6-3z" /><path d="M2 5l6 3 6-3M8 8v6" /></svg>
+          {{ t('nav.inventory') }}
+        </router-link>
+        <router-link to="/orders">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="10" height="12" rx="1" /><path d="M6 5h4M6 8h4M6 11h2" /></svg>
+          {{ t('nav.orders') }}
+        </router-link>
+        <router-link to="/spending">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13h12M4 10v3M8 6v7M12 3v10" /></svg>
+          {{ t('nav.finance') }}
+        </router-link>
+        <div class="nav-label">{{ t('nav.groupPlanning') }}</div>
+        <router-link to="/demand">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12l4-4 3 2 5-6" /><path d="M10 4h4v4" /></svg>
+          {{ t('nav.demandForecast') }}
+        </router-link>
+        <router-link to="/restocking">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8a6 6 0 0 1 10.5-4M14 8a6 6 0 0 1-10.5 4" /><path d="M12.5 1.5V4H10M3.5 14.5V12H6" /></svg>
+          {{ t('nav.restocking') }}
+        </router-link>
+        <router-link to="/reports">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z" /><path d="M9 2v3h3M6 9h4M6 11.5h4" /></svg>
+          Reports
+        </router-link>
+      </nav>
+
+      <div class="side-foot">
         <LanguageSwitcher />
         <ProfileMenu
           @show-profile-details="showProfileDetails = true"
           @show-tasks="showTasks = true"
         />
       </div>
-    </header>
-    <FilterBar v-if="$route.path !== '/restocking'" />
-    <main class="main-content">
-      <router-view />
-    </main>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="crumbs">
+          {{ crumb.group }} / <b>{{ crumb.page }}</b>
+        </div>
+        <FilterBar v-if="$route.path !== '/restocking'" />
+      </div>
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
 
     <ProfileDetailsModal
       :is-open="showProfileDetails"
@@ -59,6 +83,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
@@ -80,6 +105,24 @@ export default {
   setup() {
     const { currentUser } = useAuth()
     const { t } = useI18n()
+    const route = useRoute()
+
+    const crumbs = {
+      '/': ['groupOperations', 'overview'],
+      '/inventory': ['groupOperations', 'inventory'],
+      '/orders': ['groupOperations', 'orders'],
+      '/spending': ['groupOperations', 'finance'],
+      '/demand': ['groupPlanning', 'demandForecast'],
+      '/restocking': ['groupPlanning', 'restocking'],
+      '/reports': ['groupPlanning', null]
+    }
+    const crumb = computed(() => {
+      const [group, page] = crumbs[route.path] || [null, null]
+      return {
+        group: group ? t(`nav.${group}`) : '',
+        page: page ? t(`nav.${page}`) : route.path === '/reports' ? 'Reports' : ''
+      }
+    })
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
@@ -153,6 +196,7 @@ export default {
 
     return {
       t,
+      crumb,
       showProfileDetails,
       showTasks,
       tasks,
